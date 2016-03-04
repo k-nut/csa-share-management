@@ -1,0 +1,30 @@
+<html>
+<head>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.1.8/semantic.css" >
+</head>
+
+<body>
+  <table class="ui celled striped table">
+    <thead>
+      <tr>
+        <th> Name </th>
+        <th> Zahlungen </th>
+        <th> Erwartet </th>
+        <th> Kontostand </th>
+        <th> Differenz </th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for person in people %}
+      <tr>
+        <td> {{person.name}} </td>
+        <td> {{person.number_of_deposits}} </td>
+        <td> {{person.expected_today(2)}} </td>
+        <td> {{person.total_deposits}} </td>
+        <td {% if person.difference_today(2) < 0 %} class="negative"{% endif %}>
+          {{person.difference_today(2)}} </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+</body>
+</html>
