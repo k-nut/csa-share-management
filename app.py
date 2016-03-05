@@ -14,6 +14,11 @@ def index():
     people = models.Person.query.all()
     return render_template("index.html", people=people)
 
+@app.route("/person/<int:person_id>")
+def person_details(person_id):
+    person = models.Person.query.get(person_id)
+    return render_template("details.html", person=person)
+
 
 def get_data(filepath):
     with open(filepath) as infile:

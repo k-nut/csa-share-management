@@ -59,13 +59,16 @@ class Person(db.Model):
 
     @property
     def total_deposits(self):
+        return sum(deposit.amount for deposit in self.deposits)
+
+    @property
+    def deposits(self):
         deposits = Deposit.query.filter_by(person=self).all()
-        return sum(deposit.amount for deposit in deposits)
+        return deposits
 
     @property
     def number_of_deposits(self):
-        deposits = Deposit.query.filter_by(person=self).all()
-        return len(deposits)
+        return len(self.deposits)
 
     def difference_today(self, number_of_months_expected):
         return self.total_deposits - self.expected_today(number_of_months_expected)

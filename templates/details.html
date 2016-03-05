@@ -1,0 +1,26 @@
+<html>
+<head>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.1.8/semantic.css" >
+</head>
+
+<body>
+  <h1> Deposits for {{person.name}} </h1>
+  <table class="ui celled striped table">
+    <thead>
+      <tr>
+        <th> Datum </th>
+        <th> Betrag </th>
+        <th> Titel </th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for deposit in person.deposits %}
+      <tr>
+        <td> {{deposit.timestamp}} </td>
+        <td> {{deposit.amount}} </td>
+        <td> {{deposit.title}} </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+</body>
+</html>
