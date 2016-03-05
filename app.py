@@ -43,15 +43,6 @@ def import_deposits():
                                      title=title)
             deposit.save()
 
-def print_sums():
-    people = models.Person.query.all()
-    for person in people:
-        difference = person.difference_today(2)
-        if difference < 0:
-            print person.name.encode("utf-8"), person.total_deposits, person.number_of_deposits
-            print difference
-            print "----"
-
 def fake_deposits():
     people = models.Person.query.all()
     for person in people:
