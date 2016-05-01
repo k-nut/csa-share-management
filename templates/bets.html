@@ -1,0 +1,31 @@
+<html>
+<head>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.1.8/semantic.css" >
+</head>
+
+<body>
+    <form action="/bets" method="POST">
+      <table class="ui celled striped table">
+        <thead>
+          <tr>
+            <th> Name </th>
+            <th> Gebot </th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for person in people %}
+          <tr>
+            <td>
+              <a href="{{ url_for('person_details', person_id=person.id)}}">
+                {{person.name}}
+              </a>
+            </td>
+            <td> <input type="number" value="{{person.monthly_bet_value}}" name="{{person.id}}"/> </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      <input class="ui primary button" type="submit" value="Speichern" />
+    </form>
+</body>
+</html>

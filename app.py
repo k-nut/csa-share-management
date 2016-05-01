@@ -2,10 +2,11 @@ from datetime import datetime
 import csv
 import locale
 
-from flask import Flask, render_template
+from flask import Flask, render_template, request, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 
 from solawi import app, db
+from models import MonthlyBet
 import models
 
 
@@ -19,6 +20,39 @@ def person_details(person_id):
     person = models.Person.query.get(person_id)
     return render_template("details.html", person=person)
 
+@app.route("/bets", methods=["GET", "POST"])
+def bets_overview():
+    if request.method == 'POST':
+        for key in request.form.keys():
+            print key, request.form[key]
+            MonthlyBet.set_value_for_id(request.form[key], key)
+        return redirect(url_for('bets_overview'))
+    else:
+        people = models.Person.query.all()
+        return render_template("bets.html", people=people)
+
+
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1] in ['csv', 'CSV']
+
+@app.route('/upload', methods=['GET', 'POST'])
+def upload_file():
+    if request.method == 'POST':
+        file = request.files['file']
+        if file and allowed_file(file.filename):
+            content = csv.DictReader(file.stream, delimiter=";")
+            import_deposits([line for line in content])
+            return redirect(url_for('index'))
+    return '''
+    <!doctype html>
+    <title>Upload new File</title>
+    <h1>Upload new File</h1>
+    <form action="" method=post enctype=multipart/form-data>
+      <p><input type=file name=file>
+         <input type=submit value=Upload>
+    </form>
+    '''
 
 def get_data(filepath):
     with open(filepath) as infile:
@@ -26,13 +60,12 @@ def get_data(filepath):
         return [line for line in content]
 
 
-def import_deposits():
-    data = get_data("/home/knut/Downloads/Umsaetze_01012016_bis_04032016_KTO35281500_04032016.csv")
+def import_deposits(data):
     for line in data:
         locale.setlocale(locale.LC_NUMERIC, "de_DE.UTF-8")
         value = locale.atof(line["Betrag"])
         date = datetime.strptime(line["Buchungstag"], "%d.%m.%Y")
-        keys = ["VWZ%i" % i for i in range(1,15)]
+        keys = ["VWZ%i" % i for i in range(1, 15)]
         title = ("".join([line[key] for key in keys])).decode("iso-8859-3")
         name = line["Auftraggeber/Empf\xe4nger"].decode("iso-8859-3")
         if value > 0:
@@ -42,13 +75,6 @@ def import_deposits():
                                      person=person,
                                      title=title)
             deposit.save()
-
-def fake_deposits():
-    people = models.Person.query.all()
-    for person in people:
-        bet = models.MonthlyBet(value=63,
-                                person=person)
-        bet.save()
 
 
 if __name__ == "__main__":

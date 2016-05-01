@@ -48,6 +48,13 @@ class MonthlyBet(db.Model):
             db.session.commit()
         except IntegrityError:
             db.session.rollback()
+            
+    @staticmethod
+    def set_value_for_id(bet_value, person_id):
+        person = Person.query.get(person_id)
+        bet = MonthlyBet.query.filter_by(person=person).one()
+        bet.value = bet_value
+        bet.save()
 
 
 class Person(db.Model):
@@ -65,6 +72,11 @@ class Person(db.Model):
     def deposits(self):
         deposits = Deposit.query.filter_by(person=self).all()
         return deposits
+
+    @property
+    def monthly_bet_value(self):
+        monthly_bet = MonthlyBet.query.filter_by(person=self).one()
+        return monthly_bet.value
 
     @property
     def number_of_deposits(self):

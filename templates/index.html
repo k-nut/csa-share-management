@@ -23,10 +23,10 @@
           </a>
         </td>
         <td> {{person.number_of_deposits}} </td>
-        <td> {{person.expected_today(2)}} </td>
+        <td> {{person.expected_today(1)}} </td>
         <td> {{person.total_deposits}} </td>
-        <td {% if person.difference_today(2) < 0 %} class="negative"{% endif %}>
-          {{person.difference_today(2)}} </td>
+        <td {% if person.difference_today(1) < 0 %} class="negative"{% endif %}>
+          {{person.difference_today(1)}} </td>
       </tr>
       {% endfor %}
     </tbody>
