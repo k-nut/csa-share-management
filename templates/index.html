@@ -1,6 +1,6 @@
 <html>
 <head>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.1.8/semantic.css" >
+  <link rel="stylesheet" href="{{url_for('static', filename='semantic.css')}}" >
 </head>
 
 <body>
@@ -31,7 +31,7 @@
       </tr>
     </thead>
     <tbody>
-      {% for person in people %}
+      {% for person in people |sort(attribute='name') %}
       <tr>
         <td>
           <a href="{{ url_for('person_details', person_id=person.id)}}">
