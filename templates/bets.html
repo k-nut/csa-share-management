@@ -1,9 +1,8 @@
-<html>
-<head>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.1.8/semantic.css" >
-</head>
+{% extends "index.html" %}
 
-<body>
+{% set active_page = 'bets_overview' -%}
+
+{% block body %}
     <form action="/bets" method="POST">
       <table class="ui celled striped table">
         <thead>
@@ -27,5 +26,5 @@
       </table>
       <input class="ui primary button" type="submit" value="Speichern" />
     </form>
-</body>
-</html>
+
+{% endblock %}

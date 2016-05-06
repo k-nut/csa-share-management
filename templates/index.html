@@ -4,6 +4,22 @@
 </head>
 
 <body>
+  {% set active_page = active_page|default('index') -%}
+  {% set navigation_bar = [
+		  ('index', 'Übersicht'),
+			('bets_overview', 'Gebote'),
+			('upload_file', 'Upload')
+	] -%}
+  <div class="ui three item menu">
+		{% for view_name, title in navigation_bar %}
+			<a class="item
+								{% if view_name == active_page %} active{% endif %}"
+					href="{{url_for(view_name)}}">
+				{{ title|e }}
+			</a>
+		{% endfor %}
+  </div>
+  {% block body %}
   <table class="ui celled striped table">
     <thead>
       <tr>
@@ -30,5 +46,6 @@
       </tr>
       {% endfor %}
     </tbody>
+   {% endblock %}
 </body>
 </html>

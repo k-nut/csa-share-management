@@ -1,9 +1,5 @@
-<html>
-<head>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.1.8/semantic.css" >
-</head>
-
-<body>
+{% extends "index.html" %}
+{% block body %}
   <h1> Deposits for {{person.name}} </h1>
   <table class="ui celled striped table">
     <thead>
@@ -22,5 +18,5 @@
       </tr>
       {% endfor %}
     </tbody>
-</body>
-</html>
+  </table>
+{% endblock %}
