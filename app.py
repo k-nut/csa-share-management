@@ -1,11 +1,11 @@
+""" The views """
 from datetime import datetime
 import csv
 import locale
 
-from flask import Flask, render_template, request, redirect, url_for
-from flask_sqlalchemy import SQLAlchemy
+from flask import render_template, request, redirect, url_for
 
-from solawi import app, db
+from solawi import app
 from models import MonthlyBet
 import models
 
