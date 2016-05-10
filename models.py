@@ -6,7 +6,7 @@ from sqlalchemy import UniqueConstraint
 from solawi import db, app
 
 class Deposit(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True)  # pylint: disable=invalid-name
     amount = db.Column(db.Float)
     timestamp = db.Column(db.DateTime)
     is_security = db.Column(db.Boolean)
@@ -36,7 +36,7 @@ class Deposit(db.Model):
 
 
 class Share(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True)  # pylint: disable=invalid-name
     name = db.Column(db.String)
     bet_value = db.Column(db.Float)
     people = db.relationship('Person',
@@ -88,7 +88,7 @@ class Share(db.Model):
 
 
 class Person(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True)  # pylint: disable=invalid-name
     name = db.Column(db.String(120), unique=True)
     share_id = db.Column(db.Integer, db.ForeignKey('share.id'))
 
@@ -109,7 +109,7 @@ class Person(db.Model):
 
 
     def __repr__(self):
-        string = '<Person %s (%i)>' % (self.name, self.id)
+        string = '<Person %s (id %i)>' % (self.name, self.id)
         return string.encode("utf-8")
 
     @staticmethod
@@ -119,7 +119,7 @@ class Person(db.Model):
             return exisiting
         except NoResultFound:
             new_person = Person(name)
-            # db.session.add(new_person)
-            # db.session.commit()
+            db.session.add(new_person)
+            db.session.commit()
             return new_person
 
