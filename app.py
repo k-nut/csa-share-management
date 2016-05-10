@@ -6,45 +6,82 @@ import locale
 from flask import render_template, request, redirect, url_for
 
 from solawi import app
-from models import MonthlyBet
+from models import Share
 import models
 
 
 @app.route("/")
 def index():
-    people = models.Person.query.all()
-    return render_template("index.html", people=people)
+    shares = Share.query.all()
+    return render_template("index.html", shares=shares)
+
+
+@app.route("/share/<int:share_id>")
+def share_details(share_id):
+    share = Share.query.get(share_id)
+    all_shares = Share.query.all()
+    for a_share in all_shares:
+        if a_share.id == share.id:
+            all_shares.remove(a_share)
+            break
+
+    return render_template("share_details.html",
+                           share=share,
+                           all_shares=all_shares)
+
+
+@app.route("/merge_shares", methods=["POST"])
+def merge_shares():
+    if request.method == 'POST':
+        original_share_id = request.form.get("original_share")
+        merge_share_id = request.form.get("merge_share")
+        if not original_share_id or not merge_share_id:
+            return redirect(url_for('index'))
+
+        original_share = Share.query.get(original_share_id)
+        merge_share = Share.query.get(merge_share_id)
+        for person in merge_share.people:
+            original_share.people.append(person)
+        original_share.save()
+        merge_share.delete()
+        return redirect(url_for('share_details', share_id=original_share_id))
+    else:
+        return redirect(url_for('index'))
+
 
 @app.route("/person/<int:person_id>")
 def person_details(person_id):
     person = models.Person.query.get(person_id)
     return render_template("details.html", person=person)
 
+
 @app.route("/bets", methods=["GET", "POST"])
 def bets_overview():
     if request.method == 'POST':
-        for key in request.form.keys():
-            print key, request.form[key]
-            MonthlyBet.set_value_for_id(request.form[key], key)
+        for share_id in request.form.keys():
+            value = request.form[share_id]
+            Share.set_value_for_id(value, share_id)
         return redirect(url_for('bets_overview'))
     else:
-        people = models.Person.query.all()
-        return render_template("bets.html", people=people)
+        shares = Share.query.all()
+        return render_template("bets.html", shares=shares)
 
 
 def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1] in ['csv', 'CSV']
 
+
 @app.route('/upload', methods=['GET', 'POST'])
 def upload_file():
     if request.method == 'POST':
-        file = request.files['file']
-        if file and allowed_file(file.filename):
-            content = csv.DictReader(file.stream, delimiter=";")
+        sent_file = request.files['file']
+        if sent_file and allowed_file(sent_file.filename):
+            content = csv.DictReader(sent_file.stream, delimiter=";")
             import_deposits([line for line in content])
             return redirect(url_for('index'))
     return render_template("upload.html")
+
 
 def get_data(filepath):
     with open(filepath) as infile:
@@ -67,6 +104,15 @@ def import_deposits(data):
                                      person=person,
                                      title=title)
             deposit.save()
+
+            print person
+            print person.share_id
+            if person.share_id is None:
+                print "creating new share"
+                share = Share(person.name)
+                share.people.append(person)
+                share.bet_value = 0
+                share.save()
 
 
 if __name__ == "__main__":

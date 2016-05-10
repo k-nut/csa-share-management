@@ -1,0 +1,41 @@
+{% extends "index.html" %}
+{% block body %}
+  <h1> Deposits for {{share.name}} </h1>
+  <table class="ui celled striped table">
+    <thead>
+      <tr>
+        <th> Datum </th>
+        <th> Betrag </th>
+        <th> Titel </th>
+        <th> Überweiser </th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for deposit in share.deposits %}
+      <tr>
+        <td> {{deposit.timestamp}} </td>
+        <td> {{deposit.amount}} </td>
+        <td> {{deposit.title}} </td>
+        <td>
+          <a href="{{ url_for('person_details', person_id=deposit.person.id)}}">
+            {{deposit.person.name}}
+          </a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <h2> Diesen Anteil mit einem anderen zusammenführen </h2>
+
+  <form action="/merge_shares" method="POST">
+    <select name="merge_share">
+      {% for share in all_shares | sort(attribute='name') %}
+      <option value="{{share.id}}"> {{ share.name }} </option>
+      {% endfor %}
+      <input type="hidden" value="{{share.id}}" name="original_share" />
+      <input type="submit" />
+    </select>
+  </form>
+
+{% endblock %}

@@ -31,18 +31,21 @@
       </tr>
     </thead>
     <tbody>
-      {% for person in people |sort(attribute='name') %}
+      {% for share in shares |sort(attribute='name') %}
       <tr>
         <td>
-          <a href="{{ url_for('person_details', person_id=person.id)}}">
-            {{person.name}}
+          <a href="{{ url_for('share_details', share_id=share.id)}}">
+            {{share.name}}
           </a>
         </td>
-        <td> {{person.number_of_deposits}} </td>
-        <td> {{person.expected_today(1)}} </td>
-        <td> {{person.total_deposits}} </td>
-        <td {% if person.difference_today(1) < 0 %} class="negative"{% endif %}>
-          {{person.difference_today(1)}} </td>
+
+        <td> {{share.number_of_deposits}} </td>
+        <td> {{share.expected_today(1)}} </td>
+        <td> {{share.total_deposits}} </td>
+        <td {% if share.difference_today(1) < 0 %} class="negative"{% endif %}
+            {% if share.difference_today(1) == 0 %} class="positive"{% endif %}
+          >
+          {{share.difference_today(1)}} </td>
       </tr>
       {% endfor %}
     </tbody>

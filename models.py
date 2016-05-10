@@ -1,3 +1,4 @@
+""" the models """
 from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy import UniqueConstraint
@@ -13,7 +14,7 @@ class Deposit(db.Model):
 
     person_id = db.Column(db.Integer, db.ForeignKey('person.id'))
     person = db.relationship('Person',
-        backref=db.backref('deposit', lazy='dynamic'))
+                             backref=db.backref('deposit', lazy='dynamic'))
 
     __table_args__ = (UniqueConstraint('timestamp',
                                        'amount',
@@ -28,19 +29,27 @@ class Deposit(db.Model):
             db.session.commit()
         except IntegrityError:
             db.session.rollback()
-            print("Skipping existing Deposit for %s" % self)
             app.logger.debug("Skipping existing Deposit for %s", self)
 
     def __repr__(self):
         return '<Deposit %i %r %s>' % (self.amount, self.timestamp, self.person.name)
 
 
-class MonthlyBet(db.Model):
+class Share(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    value = db.Column(db.Integer)
-    person_id = db.Column(db.Integer, db.ForeignKey('person.id'), unique=True)
-    person = db.relationship('Person',
-        backref=db.backref('monthlybet', lazy='dynamic'))
+    name = db.Column(db.String)
+    bet_value = db.Column(db.Float)
+    people = db.relationship('Person',
+                             backref="share",
+                             cascade="all, delete-orphan",
+                             lazy='dynamic')
+
+    def __init__(self, name):
+        self.name = name
+
+    def delete(self):
+        db.session.delete(self)
+        db.session.commit()
 
     def save(self):
         try:
@@ -48,52 +57,65 @@ class MonthlyBet(db.Model):
             db.session.commit()
         except IntegrityError:
             db.session.rollback()
-            
+
+    @property
+    def deposits(self):
+        deposits = []
+        for person in self.people:
+            deposits += person.deposits
+        return deposits
+
+    @property
+    def total_deposits(self):
+        return sum(deposit.amount for deposit in self.deposits)
+
+    def expected_today(self, number_of_months_expected):
+        expected = self.bet_value * number_of_months_expected
+        return expected
+
+    @property
+    def number_of_deposits(self):
+        return len(self.deposits)
+
     @staticmethod
-    def set_value_for_id(bet_value, person_id):
-        person = Person.query.get(person_id)
-        bet = MonthlyBet.query.filter_by(person=person).one()
-        bet.value = bet_value
-        bet.save()
+    def set_value_for_id(bet_value, share_id):
+        share = Share.query.get(share_id)
+        share.bet_value = bet_value
+        share.save()
+
+    def difference_today(self, number_of_months_expected):
+        return self.total_deposits - self.expected_today(number_of_months_expected)
 
 
 class Person(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(120), unique=True)
+    share_id = db.Column(db.Integer, db.ForeignKey('share.id'))
 
     def __init__(self, name):
         self.name = name
 
-    @property
-    def total_deposits(self):
-        return sum(deposit.amount for deposit in self.deposits)
+    def save(self):
+        try:
+            db.session.add(self)
+            db.session.commit()
+        except IntegrityError:
+            db.session.rollback()
 
     @property
     def deposits(self):
         deposits = Deposit.query.filter_by(person=self).all()
         return deposits
 
-    @property
-    def monthly_bet_value(self):
-        monthly_bet = MonthlyBet.query.filter_by(person=self).one()
-        return monthly_bet.value
 
-    @property
-    def number_of_deposits(self):
-        return len(self.deposits)
-
-    def difference_today(self, number_of_months_expected):
-        return self.total_deposits - self.expected_today(number_of_months_expected)
-
-    def expected_today(self, number_of_months_expected):
-        monthly_bet = MonthlyBet.query.filter_by(person=self).one()
-        expected = monthly_bet.value * number_of_months_expected
-        return expected
+    def __repr__(self):
+        string = '<Person %s (%i)>' % (self.name, self.id)
+        return string.encode("utf-8")
 
     @staticmethod
     def get_or_create(name):
         try:
-            exisiting = Person.query.filter_by(name = name).one()
+            exisiting = Person.query.filter_by(name=name).one()
             return exisiting
         except NoResultFound:
             new_person = Person(name)
