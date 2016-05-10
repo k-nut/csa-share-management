@@ -1,6 +1,19 @@
 {% extends "index.html" %}
 {% block body %}
-  <h1> Deposits for {{share.name}} </h1>
+<script>
+  function editName(){
+    var nameField = document.querySelector('#sharename');
+    var newInput = document.createElement("input");
+    newInput.value = nameField.textContent;
+    newInput.name = 'name';
+    nameField.parentNode.replaceChild(newInput, nameField);
+  }
+</script>
+<h1> Deposits for 
+  <form action='/share/{{share.id}}/rename' method='POST' style='display: inline-block;'>
+    <span id='sharename'>{{share.name}}</span>
+    <a onclick='editName()'><i class='write icon'></i></a> </h1>
+  </form>
   <table class="ui celled striped table">
     <thead>
       <tr>

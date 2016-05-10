@@ -16,6 +16,16 @@ def index():
     return render_template("index.html", shares=shares)
 
 
+@app.route("/share/<int:share_id>/rename", methods=["POST"])
+def rename_share(share_id):
+    share = Share.query.get(share_id)
+    new_name = request.form.get('name')
+    if new_name:
+        share.name = new_name
+        share.save()
+    return redirect(url_for('share_details', share_id=share_id))
+
+
 @app.route("/share/<int:share_id>")
 def share_details(share_id):
     share = Share.query.get(share_id)
