@@ -28,10 +28,10 @@ class MyTest(unittest.TestCase):
         from models import Person, Deposit, Share
         from datetime import date
 
-        person = Person.get_or_create("Knut Huehne")
+        person = Person.get_or_create("Firstname Lastname")
 
         timestamp = date(2016, 1, 2)
-        title = "Solawi Ratibor Knut Huehne"
+        title = "CSA 123 - June payment for Firstname Lastname and Other One"
         amount = 63.0
 
         deposit = Deposit(title=title,
@@ -41,7 +41,7 @@ class MyTest(unittest.TestCase):
 
         deposit.save()
 
-        share = Share("Share number one")
+        share = Share("Firstname Lastname and Other One")
         share.people.append(person)
         share.save()
         assert share.number_of_deposits == 1
