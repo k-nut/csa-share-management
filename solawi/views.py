@@ -6,8 +6,8 @@ import locale
 from flask import render_template, request, redirect, url_for
 
 from solawi import app
-from models import Share
-import models
+from solawi.models import Share, Deposit
+import solawi.models as models
 
 
 @app.route("/")
@@ -39,6 +39,15 @@ def share_details(share_id):
                            share=share,
                            all_shares=all_shares)
 
+
+@app.route("/deposit/<int:deposit_id>/ignore")
+def ignore_deposit(deposit_id):
+    deposit = Deposit.query.get(deposit_id)
+    deposit.ignore = not deposit.ignore
+    deposit.save()
+
+    share_for_deposit = deposit.person.share_id
+    return redirect(url_for('share_details', share_id=share_for_deposit))
 
 @app.route("/merge_shares", methods=["POST"])
 def merge_shares():

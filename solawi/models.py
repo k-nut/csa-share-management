@@ -11,6 +11,7 @@ class Deposit(db.Model):
     timestamp = db.Column(db.DateTime)
     is_security = db.Column(db.Boolean)
     title = db.Column(db.Text)
+    ignore = db.Column(db.Boolean)
 
     person_id = db.Column(db.Integer, db.ForeignKey('person.id'))
     person = db.relationship('Person',
@@ -66,8 +67,12 @@ class Share(db.Model):
         return deposits
 
     @property
+    def valid_deposits(self):
+        return [deposit for deposit in self.deposits if not deposit.ignore]
+
+    @property
     def total_deposits(self):
-        return sum(deposit.amount for deposit in self.deposits)
+        return sum(deposit.amount for deposit in self.valid_deposits)
 
     def expected_today(self, number_of_months_expected):
         expected = self.bet_value * number_of_months_expected
@@ -75,7 +80,7 @@ class Share(db.Model):
 
     @property
     def number_of_deposits(self):
-        return len(self.deposits)
+        return len(self.valid_deposits)
 
     @staticmethod
     def set_value_for_id(bet_value, share_id):

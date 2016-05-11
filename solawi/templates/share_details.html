@@ -21,11 +21,12 @@
         <th> Betrag </th>
         <th> Titel </th>
         <th> Überweiser </th>
+        <th> Ignorieren? </th>
       </tr>
     </thead>
     <tbody>
       {% for deposit in share.deposits %}
-      <tr>
+      <tr {% if deposit.ignore %}class="ignored"{% endif %}>
         <td> {{deposit.timestamp}} </td>
         <td> {{deposit.amount}} </td>
         <td> {{deposit.title}} </td>
@@ -33,6 +34,11 @@
           <a href="{{ url_for('person_details', person_id=deposit.person.id)}}">
             {{deposit.person.name}}
           </a>
+        </td>
+        <td>
+          <form action='/deposit/{{deposit.id}}/ignore' method='GET'>
+            <input type=submit value='{% if deposit.ignore %}Einbeziehen {% else %}Ignorieren{% endif %}'></input>
+          </form>
         </td>
       </tr>
       {% endfor %}
@@ -50,5 +56,11 @@
       <input type="submit" />
     </select>
   </form>
+
+<style>
+tbody tr.ignored{
+  text-decoration: line-through;
+}
+</style>
 
 {% endblock %}

@@ -1,0 +1,6 @@
+alembic==0.8.6
+Flask==0.10.1
+Flask-SQLAlchemy==2.1
+pytest==2.9.0
+pytest-cov==2.2.1
+pytest-watch==3.10.0
