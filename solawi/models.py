@@ -1,4 +1,6 @@
 """ the models """
+import datetime
+
 from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy import UniqueConstraint
@@ -44,6 +46,7 @@ class Share(db.Model):
                              backref="share",
                              cascade="all, delete-orphan",
                              lazy='dynamic')
+    start_date = db.Column(db.DateTime, default=datetime.date(2016, 5, 1))
 
     def __init__(self, name):
         self.name = name
@@ -71,10 +74,25 @@ class Share(db.Model):
         return [deposit for deposit in self.deposits if not deposit.ignore]
 
     @property
+    def start_month(self):
+        return self.start_date.month
+
+    @property
     def total_deposits(self):
         return sum(deposit.amount for deposit in self.valid_deposits)
 
-    def expected_today(self, number_of_months_expected):
+    def expected_today(self):
+        def diff_months(start, today):
+            start -= datetime.timedelta(days=30)
+            next_month = 0
+            if today.day > 24:
+                next_month = 1
+            return (today.year - start.year)*12 + today.month - start.month + next_month
+        today = datetime.date.today()
+
+        start_date = self.start_date or datetime.date(2016, 5, 1)
+
+        number_of_months_expected = diff_months(start_date, today)
         expected = self.bet_value * number_of_months_expected
         return expected
 
@@ -88,8 +106,8 @@ class Share(db.Model):
         share.bet_value = bet_value
         share.save()
 
-    def difference_today(self, number_of_months_expected):
-        return self.total_deposits - self.expected_today(number_of_months_expected)
+    def difference_today(self):
+        return self.total_deposits - self.expected_today()
 
 
 class Person(db.Model):

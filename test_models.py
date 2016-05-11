@@ -58,8 +58,38 @@ class MyTest(unittest.TestCase):
 
         person = Person.get_or_create("Firstname Lastname")
 
-        timestamp = date(2016, 1, 2)
-        title = "CSA 123 - June payment for Firstname Lastname and Other One"
+        timestamp = date(2016, 1, 24)
+        title = "CSA 123 - February payment for Firstname Lastname and Other One"
+        amount = 63.0
+
+        deposit = Deposit(title=title,
+                          person=person,
+                          amount=amount,
+                          timestamp=timestamp)
+
+        deposit.save()
+
+        share = Share("Firstname Lastname and Other One")
+        share.people.append(person)
+        share.save()
+        assert share.number_of_deposits == 1
+        assert share.total_deposits == 63
+        assert len(Deposit.query.all()) == 1
+
+        deposit.ignore = True
+        deposit.save()
+        assert share.number_of_deposits == 0
+        assert share.total_deposits == 0
+        assert len(Deposit.query.all()) == 1
+
+    def test_expected_amount_wiht_custom_start_date(self):
+        from solawi.models import Person, Deposit, Share
+        from datetime import date
+
+        person = Person.get_or_create("Firstname Lastname")
+
+        timestamp = date(2016, 3, 25)
+        title = "CSA 123 - March payment for Firstname Lastname and Other One"
         amount = 63.0
 
         deposit = Deposit(title=title,

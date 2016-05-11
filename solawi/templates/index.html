@@ -1,6 +1,10 @@
 <html>
 <head>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.1.8/semantic.css" >
+  <script
+			  src="https://code.jquery.com/jquery-2.2.3.min.js"
+			  integrity="sha256-a23g1Nt4dtEYOj7bR+vTu7+T8VP13humZFBJNIYoEJo="
+			  crossorigin="anonymous"></script>
 </head>
 
 <body>
@@ -40,12 +44,12 @@
         </td>
 
         <td> {{share.number_of_deposits}} </td>
-        <td> {{share.expected_today(1)}} </td>
+        <td> {{share.expected_today()}} </td>
         <td> {{share.total_deposits}} </td>
-        <td {% if share.difference_today(1) < 0 %} class="negative"{% endif %}
-            {% if share.difference_today(1) == 0 %} class="positive"{% endif %}
+        <td {% if share.difference_today() < 0 %} class="negative"{% endif %}
+            {% if share.difference_today() == 0 %} class="positive"{% endif %}
           >
-          {{share.difference_today(1)}} </td>
+          {{share.difference_today()}} </td>
       </tr>
       {% endfor %}
     </tbody>

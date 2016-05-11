@@ -9,6 +9,7 @@
           <tr>
             <th> Name </th>
             <th> Gebot </th>
+            <th> Startmonat </th>
           </tr>
         </thead>
         <tbody>
@@ -19,7 +20,16 @@
                 {{share.name}}
               </a>
             </td>
-            <td> <input type="number" value="{{share.bet_value}}" name="{{share.id}}"/> </td>
+            <td> <input type="number" value="{{share.bet_value}}" name="value-{{share.id}}"/> </td>
+            <td>
+              <select name='month-{{share.id}}'>
+                <option value='4' {% if share.start_month == 4 %} selected='selected' {% endif %}>April</option>
+                <option value='5' {% if share.start_month == 5 %} selected='selected' {% endif %}>Mai</option>
+                <option value='6' {% if share.start_month == 6 %} selected='selected' {% endif %}>Juni</option>
+                <option value='7' {% if share.start_month == 7 %} selected='selected' {% endif %}>Juli</option>
+                <option value='8' {% if share.start_month == 8 %} selected='selected' {% endif %}>August</option>
+              </select>
+            </td>
           </tr>
           {% endfor %}
         </tbody>

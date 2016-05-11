@@ -77,9 +77,20 @@ def person_details(person_id):
 @app.route("/bets", methods=["GET", "POST"])
 def bets_overview():
     if request.method == 'POST':
-        for share_id in request.form.keys():
+        all_keys = request.form.keys()
+        value_keys = [k for k in all_keys if k.startswith('value')]
+        month_keys = [k for k in all_keys if k.startswith('month')]
+
+        for share_id in value_keys:
             value = request.form[share_id]
-            Share.set_value_for_id(value, share_id)
+            Share.set_value_for_id(value, share_id.split("-")[1])
+
+        for share_id in month_keys:
+            month = int(request.form[share_id])
+            share = Share.query.get(share_id.split("-")[1])
+            share.start_date = datetime(2016, month, 1)
+            share.save()
+
         return redirect(url_for('bets_overview'))
     else:
         shares = Share.query.all()
