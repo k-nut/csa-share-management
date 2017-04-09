@@ -135,10 +135,10 @@ def import_deposits(data):
                                      title=title)
             deposit.save()
 
-            print person
-            print person.share_id
+            print(person)
+            print(person.share_id)
             if person.share_id is None:
-                print "creating new share"
+                print("creating new share")
                 share = Share(person.name)
                 share.people.append(person)
                 share.bet_value = 0
