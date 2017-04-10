@@ -1,11 +1,16 @@
 """ the models """
 import datetime
 
+from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy import UniqueConstraint
+from flask_bcrypt import Bcrypt
+from flask_login import UserMixin
 
 from solawi import db, app
+
+bcrypt = Bcrypt(app)
 
 class Deposit(db.Model):
     id = db.Column(db.Integer, primary_key=True)  # pylint: disable=invalid-name
@@ -146,3 +151,37 @@ class Person(db.Model):
             db.session.commit()
             return new_person
 
+
+class User(UserMixin, db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String, unique=True, nullable=False)
+    _password = db.Column(db.Binary(128), nullable=False)
+
+    def __init__(self, email, password):
+        self.email = email.lower()
+        self.password = password
+
+    def check_password(self, password):
+        return bcrypt.check_password_hash(self._password, password)
+
+    @staticmethod
+    def get(id):
+        print(id)
+        return db.session.query(User).get(id)
+
+    @hybrid_property
+    def password(self):
+        return self._password
+
+    @password.setter
+    def _set_password(self, plaintext):
+        self._password = bcrypt.generate_password_hash(plaintext)
+
+    @staticmethod
+    def authenticate_and_get(email, password):
+        email = email.lower()
+        user = db.session.query(User).filter(User.email==email).one_or_none()
+        if user is not None and user.check_password(password):
+            return user
+        else:
+            return None

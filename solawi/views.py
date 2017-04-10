@@ -3,20 +3,48 @@ from datetime import datetime
 import csv
 import locale
 
-from flask import render_template, request, redirect, url_for
+from flask import render_template, request, redirect, url_for, abort, Response
+from flask_login import LoginManager, login_required, login_user, logout_user
 
 from solawi import app
 from solawi.models import Share, Deposit
 import solawi.models as models
 
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = "login"
+
+
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    if request.method == 'POST':
+        email = request.form['email']
+        password = request.form['password']
+        user = models.User.authenticate_and_get(email, password)
+        if user:
+            login_user(user)
+            return redirect(request.args.get("next"))
+        else:
+            return abort(401)
+    else:
+        return Response('''
+        <form action="" method="post">
+            <p><input type=text name=email>
+            <p><input type=password name=password>
+            <p><input type=submit value=Login>
+        </form>
+        ''')
+
 
 @app.route("/")
+@login_required
 def index():
     shares = Share.query.all()
     return render_template("index.html", shares=shares)
 
 
 @app.route("/share/<int:share_id>/rename", methods=["POST"])
+@login_required
 def rename_share(share_id):
     share = Share.query.get(share_id)
     new_name = request.form.get('name')
@@ -27,6 +55,7 @@ def rename_share(share_id):
 
 
 @app.route("/share/<int:share_id>")
+@login_required
 def share_details(share_id):
     share = Share.query.get(share_id)
     all_shares = Share.query.all()
@@ -41,6 +70,7 @@ def share_details(share_id):
 
 
 @app.route("/deposit/<int:deposit_id>/ignore")
+@login_required
 def ignore_deposit(deposit_id):
     deposit = Deposit.query.get(deposit_id)
     deposit.ignore = not deposit.ignore
@@ -50,6 +80,7 @@ def ignore_deposit(deposit_id):
     return redirect(url_for('share_details', share_id=share_for_deposit))
 
 @app.route("/merge_shares", methods=["POST"])
+@login_required
 def merge_shares():
     if request.method == 'POST':
         original_share_id = request.form.get("original_share")
@@ -69,12 +100,14 @@ def merge_shares():
 
 
 @app.route("/person/<int:person_id>")
+@login_required
 def person_details(person_id):
     person = models.Person.query.get(person_id)
     return render_template("details.html", person=person)
 
 
 @app.route("/bets", methods=["GET", "POST"])
+@login_required
 def bets_overview():
     if request.method == 'POST':
         all_keys = request.form.keys()
@@ -103,6 +136,7 @@ def allowed_file(filename):
 
 
 @app.route('/upload', methods=['GET', 'POST'])
+@login_required
 def upload_file():
     if request.method == 'POST':
         sent_file = request.files['file']
@@ -144,6 +178,22 @@ def import_deposits(data):
                 share.bet_value = 0
                 share.save()
 
+
+@app.errorhandler(401)
+def unauthorized(_):
+    return Response('<p>Login failed</p>')
+
+
+@login_manager.user_loader
+def load_user(user_id):
+    return models.User.get(user_id)
+
+
+@app.route("/logout")
+@login_required
+def logout():
+    logout_user()
+    return redirect("/")
 
 if __name__ == "__main__":
     app.debug = True

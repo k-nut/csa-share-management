@@ -12,9 +12,10 @@
   {% set navigation_bar = [
 		  ('index', 'Übersicht'),
 			('bets_overview', 'Gebote'),
-			('upload_file', 'Upload')
+			('upload_file', 'Upload'),
+            ('logout', 'Abmelden')
 	] -%}
-  <div class="ui three item menu">
+  <div class="ui four item menu">
 		{% for view_name, title in navigation_bar %}
 			<a class="item
 								{% if view_name == active_page %} active{% endif %}"
