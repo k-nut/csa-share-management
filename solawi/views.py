@@ -141,7 +141,8 @@ def upload_file():
     if request.method == 'POST':
         sent_file = request.files['file']
         if sent_file and allowed_file(sent_file.filename):
-            content = csv.DictReader(sent_file.stream, delimiter=";")
+            decoded = [a.decode("windows-1252") for a in sent_file.readlines()]
+            content = csv.DictReader(decoded, delimiter=";")
             import_deposits([line for line in content])
             return redirect(url_for('index'))
     return render_template("upload.html")
@@ -156,11 +157,12 @@ def get_data(filepath):
 def import_deposits(data):
     for line in data:
         locale.setlocale(locale.LC_NUMERIC, "de_DE.UTF-8")
-        value = locale.atof(line["Betrag"])
+        print(line["Betrag"])
+        value = locale.atof(line["Betrag"].replace(".", ""))
         date = datetime.strptime(line["Buchungstag"], "%d.%m.%Y")
         keys = ["VWZ%i" % i for i in range(1, 15)]
-        title = ("".join([line[key] for key in keys])).decode("iso-8859-3")
-        name = line["Auftraggeber/Empf\xe4nger"].decode("iso-8859-3")
+        title = "".join([line[key] for key in keys])
+        name = line["Auftraggeber/Empf\xe4nger"]
         if value > 0:
             person = models.Person.get_or_create(name)
             deposit = models.Deposit(amount=value,
@@ -169,10 +171,7 @@ def import_deposits(data):
                                      title=title)
             deposit.save()
 
-            print(person)
-            print(person.share_id)
             if person.share_id is None:
-                print("creating new share")
                 share = Share(person.name)
                 share.people.append(person)
                 share.bet_value = 0
