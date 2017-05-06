@@ -52,9 +52,14 @@ class Share(db.Model):
                              cascade="all, delete-orphan",
                              lazy='dynamic')
     start_date = db.Column(db.DateTime, default=datetime.date(2017, 5, 1))
+    station_id = db.Column(db.Integer, db.ForeignKey('station.id'))
 
-    def __init__(self, name):
+    def __init__(self, name, station=None, bet_value=None):
         self.name = name
+        if station:
+            self.station = station
+        if bet_value:
+            self.bet_value = bet_value
 
     def delete(self):
         db.session.delete(self)
@@ -113,6 +118,23 @@ class Share(db.Model):
 
     def difference_today(self):
         return self.total_deposits - self.expected_today()
+
+
+class Station(db.Model):
+    id = db.Column(db.Integer, primary_key=True)  # pylint: disable=invalid-name
+    name = db.Column(db.String(120), unique=True)
+    shares = db.relationship('Share', backref='station', lazy='dynamic')
+
+    def save(self):
+        try:
+            db.session.add(self)
+            db.session.commit()
+        except IntegrityError:
+            db.session.rollback()
+
+    @staticmethod
+    def get_by_name(name):
+        return db.session.query(Station).filter_by(name=name).first()
 
 
 class Person(db.Model):

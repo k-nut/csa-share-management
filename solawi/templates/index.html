@@ -29,6 +29,7 @@
     <thead>
       <tr>
         <th> Name </th>
+        <th> Abholstelle </th>
         <th> Zahlungen </th>
         <th> Erwartet </th>
         <th> Kontostand </th>
@@ -36,7 +37,7 @@
       </tr>
     </thead>
     <tbody>
-      {% for share in shares |sort(attribute='name') %}
+    {% for share in shares | sort(attribute='name') | sort(attribute='station.name') %}
       <tr>
         <td>
           <a href="{{ url_for('share_details', share_id=share.id)}}">
@@ -44,6 +45,7 @@
           </a>
         </td>
 
+        <td> {% if share.station %} {{share.station.name}} {% endif %} </td>
         <td> {{share.number_of_deposits}} </td>
         <td> {{share.expected_today()}} </td>
         <td> {{share.total_deposits}} </td>

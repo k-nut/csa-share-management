@@ -9,16 +9,20 @@
           <tr>
             <th> Name </th>
             <th> Gebot </th>
+            <th> Abholstelle </th>
             <th> Startmonat </th>
           </tr>
         </thead>
         <tbody>
-          {% for share in shares | sort(attribute='name')  %}
+          {% for share in shares | sort(attribute='name') | sort(attribute='station.name') %}
           <tr>
             <td>
               <a href="{{ url_for('share_details', share_id=share.id)}}">
                 {{share.name}}
               </a>
+            </td>
+            <td>
+                {{share.station.name}}
             </td>
             <td> <input type="number" value="{{share.bet_value}}" name="value-{{share.id}}"/> </td>
             <td>
