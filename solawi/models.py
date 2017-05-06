@@ -51,7 +51,7 @@ class Share(db.Model):
                              backref="share",
                              cascade="all, delete-orphan",
                              lazy='dynamic')
-    start_date = db.Column(db.DateTime, default=datetime.date(2016, 5, 1))
+    start_date = db.Column(db.DateTime, default=datetime.date(2017, 5, 1))
 
     def __init__(self, name):
         self.name = name
