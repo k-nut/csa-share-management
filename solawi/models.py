@@ -69,7 +69,8 @@ class Share(db.Model):
         try:
             db.session.add(self)
             db.session.commit()
-        except IntegrityError:
+        except IntegrityError as e:
+            print(e)
             db.session.rollback()
 
     @property
