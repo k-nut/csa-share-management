@@ -3,13 +3,13 @@
 {% set active_page = 'bets_overview' -%}
 
 {% block body %}
-    <form action="/bets" method="POST">
+    <form action="/bets" method="POST" novalidate>
       <table class="ui celled striped table">
         <thead>
           <tr>
             <th> Name </th>
-            <th> Gebot </th>
             <th> Abholstelle </th>
+            <th> Gebot </th>
             <th> Startmonat </th>
           </tr>
         </thead>
@@ -22,7 +22,11 @@
               </a>
             </td>
             <td>
-                {{share.station.name}}
+              <select name='station-{{share.id}}'>
+                {% for station in stations %}
+                <option value='{{station.id}}'  {% if share.station == station %}  selected='selected' {% endif %}>{{station.name}}</option>
+                {% endfor %}
+              </select>
             </td>
             <td> <input type="number" value="{{share.bet_value}}" name="value-{{share.id}}"/> </td>
             <td>

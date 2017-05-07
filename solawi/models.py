@@ -117,6 +117,12 @@ class Share(db.Model):
         share.bet_value = bet_value
         share.save()
 
+    @staticmethod
+    def set_station_for_id(station_id, share_id):
+        share = Share.query.get(share_id)
+        share.station_id = station_id
+        share.save()
+
     def difference_today(self):
         return self.total_deposits - self.expected_today()
 
