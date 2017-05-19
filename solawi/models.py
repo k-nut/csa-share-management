@@ -89,6 +89,13 @@ class Share(db.Model):
         return self.start_date.month
 
     @property
+    def station_name(self):
+        if self.station:
+            return self.station.name
+        else:
+            return ""
+
+    @property
     def total_deposits(self):
         return sum(deposit.amount for deposit in self.valid_deposits)
 

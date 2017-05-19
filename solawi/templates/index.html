@@ -37,7 +37,7 @@
       </tr>
     </thead>
     <tbody>
-    {% for share in shares | sort(attribute='name') | sort(attribute='station.name') %}
+    {% for share in shares | sort(attribute='name') | sort(attribute='station_name') %}
       <tr>
         <td>
           <a href="{{ url_for('share_details', share_id=share.id)}}">

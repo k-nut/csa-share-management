@@ -121,7 +121,8 @@ def bets_overview():
 
         for share_id in station_keys:
             station_id = request.form[share_id]
-            Share.set_station_for_id(station_id, share_id.split("-")[1])
+            if station_id != "None":
+                Share.set_station_for_id(station_id, share_id.split("-")[1])
 
         for share_id in month_keys:
             month = int(request.form[share_id])
