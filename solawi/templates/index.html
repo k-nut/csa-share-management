@@ -26,7 +26,7 @@
   </div>
   {% block body %}
   <table class="ui celled striped table">
-    <thead>
+    <thead class="stickytable">
       <tr>
         <th> Name </th>
         <th> Abholstelle </th>
@@ -56,6 +56,14 @@
       </tr>
       {% endfor %}
     </tbody>
+
+    <style>
+      .stickytable {
+            position: -webkit-sticky;
+            position: sticky;
+            top: 0;
+           }
+    </style>
    {% endblock %}
 </body>
 </html>
