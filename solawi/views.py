@@ -7,6 +7,7 @@ from flask import render_template, request, redirect, url_for, abort, Response
 from flask_login import LoginManager, login_required, login_user, logout_user
 
 from solawi import app
+from solawi.controller import merge
 from solawi.models import Share, Deposit
 import solawi.models as models
 
@@ -83,21 +84,12 @@ def ignore_deposit(deposit_id):
 @app.route("/merge_shares", methods=["POST"])
 @login_required
 def merge_shares():
-    if request.method == 'POST':
-        original_share_id = request.form.get("original_share")
-        merge_share_id = request.form.get("merge_share")
-        if not original_share_id or not merge_share_id:
-            return redirect(url_for('index'))
-
-        original_share = Share.query.get(original_share_id)
-        merge_share = Share.query.get(merge_share_id)
-        for person in merge_share.people:
-            original_share.people.append(person)
-        original_share.save()
-        merge_share.delete()
-        return redirect(url_for('share_details', share_id=original_share_id))
-    else:
+    original_share_id = request.form.get("original_share")
+    merge_share_id = request.form.get("merge_share")
+    new_id = merge(original_share_id, merge_share_id)
+    if not new_id:
         return redirect(url_for('index'))
+    return redirect(url_for('share_details', share_id=new_id))
 
 
 @app.route("/person/<int:person_id>")
