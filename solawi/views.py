@@ -165,7 +165,6 @@ def get_data(filepath):
 def import_deposits(data):
     for line in data:
         locale.setlocale(locale.LC_NUMERIC, "de_DE.UTF-8")
-        print(line["Betrag"])
         value = locale.atof(line["Betrag"].replace(".", ""))
         date = datetime.strptime(line["Buchungstag"], "%d.%m.%Y")
         keys = ["VWZ%i" % i for i in range(1, 15)]

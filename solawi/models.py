@@ -70,7 +70,6 @@ class Share(db.Model):
             db.session.add(self)
             db.session.commit()
         except IntegrityError as e:
-            print(e)
             db.session.rollback()
 
     @property
@@ -202,7 +201,6 @@ class User(UserMixin, db.Model):
 
     @staticmethod
     def get(id):
-        print(id)
         return db.session.query(User).get(id)
 
     @hybrid_property
