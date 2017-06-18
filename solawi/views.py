@@ -79,6 +79,7 @@ def ignore_deposit(deposit_id):
     share_for_deposit = deposit.person.share_id
     return redirect(url_for('share_details', share_id=share_for_deposit))
 
+
 @app.route("/merge_shares", methods=["POST"])
 @login_required
 def merge_shares():
