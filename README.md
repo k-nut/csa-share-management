@@ -6,14 +6,14 @@ Internal tool at our CSA (Community supported agriculture) group that helps mana
 
 ```bash
 DATABASE_URL=<postgres_path> python manage.py db upgrade
-# eg. DATABASE_URL=postgres://postgres@0.0.0.0:32770  python manage.py db upgrade
+# eg. DATABASE_URL=postgres://postgres@0.0.0.0:32768  python manage.py db upgrade
 
 ```
 
 ## Running
 ```bash
 DATABASE_URL=<postgres_path> python manage.py runserver
-# eg. DATABASE_URL=postgres://postgres@0.0.0.0:32770 python manage.py runserver
+# eg. DATABASE_URL=postgres://postgres@0.0.0.0:32768 python manage.py runserver
 ```
 
 

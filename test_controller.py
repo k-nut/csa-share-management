@@ -2,7 +2,7 @@ import unittest
 import tempfile
 import os
 
-from solawi import app, db
+from solawi.app import app, db
 
 
 class TestController(unittest.TestCase):
@@ -53,3 +53,4 @@ class TestController(unittest.TestCase):
 
         assert db.session.query(Share).one().bet_value == 100
         assert db.session.query(Share).count() == 1
+

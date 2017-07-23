@@ -2,15 +2,14 @@
 import datetime
 
 from sqlalchemy.ext.hybrid import hybrid_property
+from sqlalchemy.orm import class_mapper
 from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy import UniqueConstraint
-from flask_bcrypt import Bcrypt
 from flask_login import UserMixin
 
-from solawi import db, app
+from solawi.app import db, app, bcrypt
 
-bcrypt = Bcrypt(app)
 
 class Deposit(db.Model):
     id = db.Column(db.Integer, primary_key=True)  # pylint: disable=invalid-name
@@ -29,7 +28,16 @@ class Deposit(db.Model):
                                        'title',
                                        'person_id',
                                        name='_all_fields'),
-                     )
+                      )
+
+    @property
+    def json(self):
+        d = {}
+        columns = class_mapper(self.__class__).columns
+        for c in columns:
+            name = c.name
+            d[name] = getattr(self, name)
+        return d
 
     def save(self):
         try:
@@ -53,6 +61,26 @@ class Share(db.Model):
                              lazy='dynamic')
     start_date = db.Column(db.DateTime, default=datetime.date(2017, 5, 1))
     station_id = db.Column(db.Integer, db.ForeignKey('station.id'))
+    note = db.Column(db.Text)
+    archived = db.Column(db.Boolean, default=False)
+    email = db.Column(db.String)
+
+    @property
+    def json(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "number_of_deposits": self.number_of_deposits,
+            "difference_today": self.difference_today(),
+            "total_deposits": self.total_deposits,
+            "bet_value": self.bet_value,
+            "start_date": self.start_date.isoformat(),
+            "station_name": self.station.name if self.station else None,
+            "station_id": self.station.id if self.station else None,
+            "expected_today": self.expected_today(),
+            "note": self.note,
+            "email": self.email
+        }
 
     def __init__(self, name, station=None, bet_value=None):
         self.name = name
@@ -71,6 +99,10 @@ class Share(db.Model):
             db.session.commit()
         except IntegrityError as e:
             db.session.rollback()
+
+    @staticmethod
+    def get(share_id):
+        return db.session.query(Share).get(share_id)
 
     @property
     def deposits(self):
@@ -104,7 +136,8 @@ class Share(db.Model):
             next_month = 0
             if today.day > 24:
                 next_month = 1
-            return (today.year - start.year)*12 + today.month - start.month + next_month
+            return (today.year - start.year) * 12 + today.month - start.month + next_month
+
         today = datetime.date.today()
 
         start_date = self.start_date or datetime.date(2016, 5, 1)
@@ -138,6 +171,11 @@ class Station(db.Model):
     name = db.Column(db.String(120), unique=True)
     shares = db.relationship('Share', backref='station', lazy='dynamic')
 
+    @property
+    def json(self):
+        return {"name": self.name,
+                "id": self.id}
+
     def save(self):
         try:
             db.session.add(self)
@@ -169,7 +207,6 @@ class Person(db.Model):
     def deposits(self):
         deposits = Deposit.query.filter_by(person=self).all()
         return deposits
-
 
     def __repr__(self):
         string = '<Person %s (id %i)>' % (self.name, self.id)
@@ -214,7 +251,7 @@ class User(UserMixin, db.Model):
     @staticmethod
     def authenticate_and_get(email, password):
         email = email.lower()
-        user = db.session.query(User).filter(User.email==email).one_or_none()
+        user = db.session.query(User).filter(User.email == email).one_or_none()
         if user is not None and user.check_password(password):
             return user
         else:

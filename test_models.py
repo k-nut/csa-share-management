@@ -2,7 +2,9 @@ import unittest
 import tempfile
 import os
 
-from solawi import app, db
+from freezegun import freeze_time
+
+from solawi.app import app, db
 
 
 class MyTest(unittest.TestCase):
@@ -111,3 +113,13 @@ class MyTest(unittest.TestCase):
         assert share.number_of_deposits == 0
         assert share.total_deposits == 0
         assert len(Deposit.query.all()) == 1
+
+
+class TestShare(unittest.TestCase):
+    def test_expected_today_full_month(self):
+        from solawi.models import Share
+        import datetime
+        share = Share("Good Share", bet_value=80)
+        share.start_date = datetime.date(2017, 1, 1)
+        with freeze_time("2017-03-28"):
+            self.assertEqual(share.expected_today(), 320)

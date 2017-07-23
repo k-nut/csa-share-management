@@ -6,7 +6,7 @@ import locale
 from flask import render_template, request, redirect, url_for, abort, Response
 from flask_login import LoginManager, login_required, login_user, logout_user
 
-from solawi import app
+from solawi.app import app
 from solawi.controller import merge
 from solawi.models import Share, Deposit
 import solawi.models as models
@@ -179,7 +179,7 @@ def import_deposits(data):
 
 @app.errorhandler(401)
 def unauthorized(_):
-    return Response('<p>Login failed</p>')
+    return Response('<p>Login failed</p>'), 401
 
 
 @login_manager.user_loader
