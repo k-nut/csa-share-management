@@ -31,7 +31,7 @@
         <td> {{deposit.amount}} </td>
         <td> {{deposit.title}} </td>
         <td>
-          <a href="{{ url_for('person_details', person_id=deposit.person.id)}}">
+          <a href="{{ url_for('.person_details', person_id=deposit.person.id)}}">
             {{deposit.person.name}}
           </a>
         </td>

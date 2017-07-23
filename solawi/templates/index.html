@@ -10,10 +10,10 @@
 <body>
   {% set active_page = active_page|default('index') -%}
   {% set navigation_bar = [
-		  ('index', 'Übersicht'),
-			('bets_overview', 'Gebote'),
-			('upload_file', 'Upload'),
-            ('logout', 'Abmelden')
+        ('.index', 'Übersicht'),
+        ('.bets_overview', 'Gebote'),
+        ('.upload_file', 'Upload'),
+        ('.logout', 'Abmelden')
 	] -%}
   <div class="ui four item menu">
 		{% for view_name, title in navigation_bar %}
@@ -40,7 +40,7 @@
     {% for share in shares | sort(attribute='name') | sort(attribute='station_name') %}
       <tr>
         <td>
-          <a href="{{ url_for('share_details', share_id=share.id)}}">
+          <a href="{{ url_for('.share_details', share_id=share.id)}}">
             {{share.name}}
           </a>
         </td>

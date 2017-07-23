@@ -17,3 +17,4 @@ bcrypt = Bcrypt(app)
 
 import solawi.views
 import solawi.api
+import solawi.old_app

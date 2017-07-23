@@ -1,3 +1,8 @@
+import csv
+import locale
+from datetime import datetime
+
+from solawi import models
 from solawi.models import Share
 
 
@@ -20,3 +25,32 @@ def merge(first_share_id, second_share_id):
     merge_into.save()
     take_from.delete()
     return merge_into.id
+
+
+def get_data(filepath):
+    with open(filepath) as infile:
+        content = csv.DictReader(infile, delimiter=";")
+        return [line for line in content]
+
+
+def import_deposits(data):
+    for line in data:
+        locale.setlocale(locale.LC_NUMERIC, "de_DE.UTF-8")
+        value = locale.atof(line["Betrag"].replace(".", ""))
+        date = datetime.strptime(line["Buchungstag"], "%d.%m.%Y")
+        keys = ["VWZ%i" % i for i in range(1, 15)]
+        title = "".join([line[key] for key in keys])
+        name = line["Auftraggeber/Empf\xe4nger"]
+        if value > 0:
+            person = models.Person.get_or_create(name)
+            deposit = models.Deposit(amount=value,
+                                     timestamp=date,
+                                     person=person,
+                                     title=title)
+            deposit.save()
+
+            if person.share_id is None:
+                share = Share(person.name)
+                share.people.append(person)
+                share.bet_value = 0
+                share.save()
