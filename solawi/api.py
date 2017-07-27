@@ -73,4 +73,16 @@ def post_deposit(deposit_id):
     deposit.save()
     return jsonify(deposit=deposit.json)
 
+
+@api.route("/deposits/", methods=["PUT"])
+@login_required
+def put_deposit():
+    deposit = Deposit()
+    json = request.get_json()
+    json.pop("id", None)
+    for field in json:
+        setattr(deposit, field, json.get(field))
+    deposit.save()
+    return jsonify(deposit=deposit.json)
+
 app.register_blueprint(api, url_prefix='/api/v1')
