@@ -2,7 +2,7 @@ from flask import request, jsonify, Blueprint
 from flask_login import login_user, logout_user, login_required
 
 from solawi import models
-from solawi.models import Share
+from solawi.models import Share, Deposit
 
 from solawi.app import app
 api = Blueprint('api', __name__)
@@ -60,5 +60,17 @@ def post_shares_details(share_id):
     share.save()
     resp = share.json
     return jsonify(share=resp)
+
+
+@api.route("/deposits/<int:deposit_id>", methods=["POST"])
+@login_required
+def post_deposit(deposit_id):
+    deposit = Deposit.get(deposit_id)
+    json = request.get_json()
+    json.pop("id")
+    for field in json:
+        setattr(deposit, field, json.get(field))
+    deposit.save()
+    return jsonify(deposit=deposit.json)
 
 app.register_blueprint(api, url_prefix='/api/v1')

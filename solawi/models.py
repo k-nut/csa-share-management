@@ -30,6 +30,10 @@ class Deposit(db.Model):
                                        name='_all_fields'),
                       )
 
+    @staticmethod
+    def get(id):
+        return db.session.query(Deposit).get(id)
+
     @property
     def json(self):
         d = {}
