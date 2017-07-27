@@ -1,5 +1,8 @@
 import os
+
+from datetime import date
 from flask import Flask
+from flask.json import JSONEncoder
 from flask_bcrypt import Bcrypt
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
@@ -10,6 +13,21 @@ app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'verysecret')
 app.debug = os.environ.get("DEBUG", False)
 
 CORS(app, supports_credentials=True)
+
+
+class CustomJSONEncoder(JSONEncoder):
+    def default(self, obj):
+        try:
+            if isinstance(obj, date):
+                return obj.isoformat()
+            iterable = iter(obj)
+        except TypeError:
+            pass
+        else:
+            return list(iterable)
+        return JSONEncoder.default(self, obj)
+
+app.json_encoder = CustomJSONEncoder
 
 db = SQLAlchemy(app)
 bcrypt = Bcrypt(app)
