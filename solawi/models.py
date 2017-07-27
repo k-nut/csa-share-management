@@ -117,7 +117,8 @@ class Share(db.Model):
 
     @property
     def valid_deposits(self):
-        return [deposit for deposit in self.deposits if not deposit.ignore]
+        return [deposit for deposit in self.deposits
+                if not (deposit.ignore or deposit.is_security)]
 
     @property
     def start_month(self):
