@@ -74,6 +74,7 @@ class Share(db.Model):
         return {
             "id": self.id,
             "name": self.name,
+            "archived": self.archived,
             "number_of_deposits": self.number_of_deposits,
             "difference_today": self.difference_today(),
             "total_deposits": self.total_deposits,

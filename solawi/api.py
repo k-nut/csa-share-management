@@ -54,7 +54,7 @@ def shares_details(share_id):
 def post_shares_details(share_id):
     share = Share.get(share_id)
     json = request.get_json()
-    for field in ["bet_value", "start_date", "station_id", "note", "email"]:
+    for field in ["bet_value", "start_date", "station_id", "note", "email", "archived"]:
         if field in json:
             setattr(share, field, json.get(field))
     share.save()
