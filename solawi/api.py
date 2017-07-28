@@ -2,6 +2,7 @@ from flask import request, jsonify, Blueprint
 from flask_login import login_user, logout_user, login_required
 
 from solawi import models
+from solawi.controller import merge
 from solawi.models import Share, Deposit
 
 from solawi.app import app
@@ -84,5 +85,17 @@ def put_deposit():
         setattr(deposit, field, json.get(field))
     deposit.save()
     return jsonify(deposit=deposit.json)
+
+
+@api.route("/shares/merge", methods=["POST"])
+@login_required
+def merge_shares():
+    json = request.get_json()
+    share1 = json.get("share1")
+    share2 = json.get("share2")
+    if not share1 or not share2:
+        return jsonify(message='You need to supply share1 and share2'), 400
+    merge(share1, share2)
+    return jsonify(message='success')
 
 app.register_blueprint(api, url_prefix='/api/v1')
