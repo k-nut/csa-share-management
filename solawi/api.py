@@ -1,11 +1,15 @@
+import csv
+
 from flask import request, jsonify, Blueprint
 from flask_login import login_user, logout_user, login_required
 
 from solawi import models
-from solawi.controller import merge
+from solawi.controller import merge, import_deposits
 from solawi.models import Share, Deposit
 
 from solawi.app import app
+from solawi.old_app import allowed_file
+
 api = Blueprint('api', __name__)
 
 
@@ -97,5 +101,16 @@ def merge_shares():
         return jsonify(message='You need to supply share1 and share2'), 400
     merge(share1, share2)
     return jsonify(message='success')
+
+
+@api.route("/deposits/upload", methods=["POST"])
+@login_required
+def upload_file():
+    sent_file = request.files['file']
+    if sent_file and allowed_file(sent_file.filename):
+        decoded = [a.decode("windows-1252") for a in sent_file.readlines()]
+        content = csv.DictReader(decoded, delimiter=";")
+        import_deposits([line for line in content])
+        return jsonify(message='success!')
 
 app.register_blueprint(api, url_prefix='/api/v1')
