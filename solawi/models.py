@@ -209,6 +209,19 @@ class Person(db.Model):
         except IntegrityError:
             db.session.rollback()
 
+    @staticmethod
+    def get(person_id):
+        return db.session.query(Person).get(person_id)
+
+    @property
+    def json(self):
+        d = {}
+        columns = class_mapper(self.__class__).columns
+        for c in columns:
+            name = c.name
+            d[name] = getattr(self, name)
+        return d
+
     @property
     def deposits(self):
         deposits = Deposit.query.filter_by(person=self).all()

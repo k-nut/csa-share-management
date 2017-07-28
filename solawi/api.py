@@ -5,7 +5,7 @@ from flask_login import login_user, logout_user, login_required
 
 from solawi import models
 from solawi.controller import merge, import_deposits
-from solawi.models import Share, Deposit
+from solawi.models import Share, Deposit, Person
 
 from solawi.app import app
 from solawi.old_app import allowed_file
@@ -112,5 +112,11 @@ def upload_file():
         content = csv.DictReader(decoded, delimiter=";")
         import_deposits([line for line in content])
         return jsonify(message='success!')
+
+
+@api.route("/person/<int:person_id>", methods=["GET"])
+@login_required
+def get_person(person_id):
+    return jsonify(Person.get(person_id).json)
 
 app.register_blueprint(api, url_prefix='/api/v1')
