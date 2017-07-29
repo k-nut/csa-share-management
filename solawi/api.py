@@ -1,5 +1,6 @@
 import csv
 
+import datetime
 from flask import request, jsonify, Blueprint
 from flask_login import login_user, logout_user, login_required
 
@@ -7,11 +8,25 @@ from solawi import models
 from solawi.controller import merge, import_deposits
 from solawi.models import Share, Deposit, Person
 
-from solawi.app import app
+from solawi.app import app, db
 from solawi.old_app import allowed_file
 
 api = Blueprint('api', __name__)
 
+
+def expected_today(share):
+    def diff_months(start, today):
+        start -= datetime.timedelta(days=30)
+        next_month = 0
+        if today.day > 24:
+            next_month = 1
+        return (today.year - start.year) * 12 + today.month - start.month + next_month
+
+    today = datetime.date.today()
+
+    number_of_months_expected = diff_months(share.start_date, today)
+    expected = share.bet_value * number_of_months_expected
+    return expected
 
 @api.route("/login", methods=["POST"])
 def api_login():
@@ -34,9 +49,45 @@ def api_logout():
 @api.route("/shares")
 @login_required
 def shares_list():
-    print(request.cookies)
     shares = [share.json for share in Share.query.all()]
     return jsonify(shares=shares)
+
+
+@api.route("/shares/payment_status", methods=["GET"])
+@login_required
+def get_payment_list():
+    query = """
+SELECT share.id,
+       share.name,
+       sum(
+        CASE WHEN (NOT deposit.is_security OR deposit.is_security IS NULL)
+              AND (NOT deposit.ignore OR deposit.ignore IS NULL)
+              THEN amount
+              ELSE 0 END
+       ) AS total_deposits, 
+       count(deposit.amount) filter (where
+                                    (NOT deposit.ignore OR deposit.ignore IS NULL) 
+                                    AND (NOT deposit.ignore OR deposit.ignore IS NULL))
+       AS number_of_deposits,
+       station.name AS station_name,
+       share.bet_value,
+       share.start_date,
+       share.archived
+FROM share 
+LEFT JOIN person ON share.id = person.share_id
+LEFT JOIN deposit ON deposit.person_id = person.id
+LEFT JOIN station ON share.station_id = station.id
+GROUP BY share.id, station.name, share.bet_value, share.start_date, share.name, share.archived
+    """
+    result = db.engine.execute(query)
+    res = []
+    for share in result:
+        dict_share = dict(share)
+        dict_share['expected_today'] = expected_today(share)
+        dict_share['total_deposits'] = share.total_deposits or 0
+        dict_share['difference_today'] = - (dict_share['expected_today'] - dict_share['total_deposits'])
+        res.append(dict_share)
+    return jsonify(shares=res)
 
 
 @api.route("/stations")
