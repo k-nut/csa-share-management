@@ -34,6 +34,7 @@ def api_logout():
 @api.route("/shares")
 @login_required
 def shares_list():
+    print(request.cookies)
     shares = [share.json for share in Share.query.all()]
     return jsonify(shares=shares)
 
