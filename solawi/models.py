@@ -75,14 +75,9 @@ class Share(db.Model):
             "id": self.id,
             "name": self.name,
             "archived": self.archived,
-            "number_of_deposits": self.number_of_deposits,
-            "difference_today": self.difference_today(),
-            "total_deposits": self.total_deposits,
             "bet_value": self.bet_value,
             "start_date": self.start_date.isoformat(),
-            "station_name": self.station.name if self.station else None,
-            "station_id": self.station.id if self.station else None,
-            "expected_today": self.expected_today(),
+            "station_id": self.station_id,
             "note": self.note,
             "email": self.email
         }
