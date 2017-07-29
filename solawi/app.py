@@ -29,11 +29,6 @@ class CustomJSONEncoder(JSONEncoder):
 
 app.json_encoder = CustomJSONEncoder
 
-
-@app.before_request
-def debug():
-    print(request.cookies)
-
 db = SQLAlchemy(app)
 bcrypt = Bcrypt(app)
 
