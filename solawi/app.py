@@ -1,7 +1,7 @@
 import os
 
 from datetime import date
-from flask import Flask
+from flask import Flask, request
 from flask.json import JSONEncoder
 from flask_bcrypt import Bcrypt
 from flask_sqlalchemy import SQLAlchemy
@@ -28,6 +28,11 @@ class CustomJSONEncoder(JSONEncoder):
         return JSONEncoder.default(self, obj)
 
 app.json_encoder = CustomJSONEncoder
+
+
+@app.before_request
+def debug():
+    print(request.cookies)
 
 db = SQLAlchemy(app)
 bcrypt = Bcrypt(app)
