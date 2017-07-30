@@ -28,6 +28,7 @@ def expected_today(share):
     expected = share.bet_value * number_of_months_expected
     return expected
 
+
 @api.route("/login", methods=["POST"])
 def api_login():
     email = request.json.get('email')
@@ -101,9 +102,14 @@ def bets_list():
 @login_required
 def shares_details(share_id):
     share = Share.get(share_id)
-    resp = share.json
-    resp['deposits'] = [deposit.json for deposit in share.deposits]
-    return jsonify(share=resp)
+    return jsonify(share=share.json)
+
+
+@api.route("/shares/<int:share_id>/deposits", methods=["GET"])
+@login_required
+def share_deposits(share_id):
+    deposits = Share.get_deposits(share_id)
+    return jsonify(deposits=deposits)
 
 
 @api.route("/shares/<int:share_id>", methods=["POST"])

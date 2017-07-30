@@ -104,6 +104,25 @@ class Share(db.Model):
     def get(share_id):
         return db.session.query(Share).get(share_id)
 
+    @staticmethod
+    def get_deposits(share_id):
+        res =  db.session.query(Deposit, Person.name, Person.id)\
+                          .join(Person) \
+                          .filter(Person.share_id == share_id) \
+                          .all()
+        result = []
+        for deposit, person_name, person_id in res:
+            result.append(dict(
+                timestamp=deposit.timestamp,
+                amount=deposit.amount,
+                title=deposit.title,
+                person_id=person_id,
+                person_name=person_name,
+                ignore=deposit.ignore,
+                security=deposit.is_security
+            ))
+        return(result)
+
     @property
     def deposits(self):
         deposits = []
