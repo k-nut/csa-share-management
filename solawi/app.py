@@ -1,4 +1,6 @@
 import os
+import sys
+import logging
 
 from datetime import date
 from flask import Flask, request
@@ -11,6 +13,8 @@ app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:////home/knut/solawi.db')
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'verysecret')
 app.debug = os.environ.get("DEBUG", False)
+app.logger.addHandler(logging.StreamHandler(sys.stdout))
+app.logger.setLevel(logging.ERROR)
 
 CORS(app, supports_credentials=True)
 
