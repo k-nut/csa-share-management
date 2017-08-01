@@ -3,11 +3,13 @@ import sys
 import logging
 
 from datetime import date
-from flask import Flask, request
+from flask import Flask
 from flask.json import JSONEncoder
 from flask_bcrypt import Bcrypt
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
+from raven.contrib.flask import Sentry
+
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:////home/knut/solawi.db')
@@ -15,6 +17,9 @@ app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'verysecret')
 app.debug = os.environ.get("DEBUG", False)
 app.logger.addHandler(logging.StreamHandler(sys.stdout))
 app.logger.setLevel(logging.ERROR)
+
+sentry = Sentry(app)
+
 
 CORS(app, supports_credentials=True)
 
