@@ -113,6 +113,7 @@ class Share(db.Model):
         result = []
         for deposit, person_name, person_id in res:
             result.append(dict(
+                id=deposit.id,
                 timestamp=deposit.timestamp,
                 amount=deposit.amount,
                 title=deposit.title,
