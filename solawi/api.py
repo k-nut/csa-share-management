@@ -102,7 +102,11 @@ def bets_list():
 @login_required
 def shares_details(share_id):
     share = Share.get(share_id)
-    return jsonify(share=share.json)
+    dict_share = share.json
+    dict_share['expected_today'] = expected_today(share)
+    dict_share['total_deposits'] = share.total_deposits or 0
+    dict_share['difference_today'] = - (dict_share['expected_today'] - dict_share['total_deposits'])
+    return jsonify(share=dict_share)
 
 
 @api.route("/shares/<int:share_id>/deposits", methods=["GET"])
