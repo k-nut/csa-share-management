@@ -73,7 +73,8 @@ SELECT share.id,
        station.name AS station_name,
        share.bet_value,
        share.start_date,
-       share.archived
+       share.archived,
+       share.note
 FROM share 
 LEFT JOIN person ON share.id = person.share_id
 LEFT JOIN deposit ON deposit.person_id = person.id
