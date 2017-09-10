@@ -130,6 +130,18 @@ def post_shares_details(share_id):
     return jsonify(share=resp)
 
 
+@api.route("/shares", methods=["POST"])
+@login_required
+def add_share():
+    json = request.get_json()
+    share = Share(name=json.get('name'), bet_value=0)
+    for field in json:
+        setattr(share, field, json.get(field))
+    share.save()
+    resp = share.json
+    return jsonify(share=resp)
+
+
 @api.route("/deposits/<int:deposit_id>", methods=["POST"])
 @login_required
 def post_deposit(deposit_id):
