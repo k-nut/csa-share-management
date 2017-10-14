@@ -120,7 +120,7 @@ class Share(db.Model):
                 person_id=person_id,
                 person_name=person_name,
                 ignore=deposit.ignore,
-                security=deposit.is_security
+                is_security=deposit.is_security
             ))
         return(result)
 
