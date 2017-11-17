@@ -11,5 +11,6 @@ pytest-cov==2.2.1
 pytest-watch==3.10.0
 psycopg2==2.7.1
 raven[flask]
+simplejson==3.12.0 # for Decimal support in jsonify
 
 -r requirements-heroku.txt
