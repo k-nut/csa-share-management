@@ -13,7 +13,7 @@ from solawi.app import db, app, bcrypt
 
 class Deposit(db.Model):
     id = db.Column(db.Integer, primary_key=True)  # pylint: disable=invalid-name
-    amount = db.Column(db.Float)
+    amount = db.Column(db.Numeric)
     timestamp = db.Column(db.DateTime)
     is_security = db.Column(db.Boolean)
     title = db.Column(db.Text)

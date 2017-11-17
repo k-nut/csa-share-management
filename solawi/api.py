@@ -1,6 +1,7 @@
 import csv
 
 import datetime
+from decimal import Decimal
 from flask import request, jsonify, Blueprint
 from flask_login import login_user, logout_user, login_required
 
@@ -25,7 +26,7 @@ def expected_today(share):
     today = datetime.date.today()
 
     number_of_months_expected = diff_months(share.start_date, today)
-    expected = share.bet_value * number_of_months_expected
+    expected = Decimal(share.bet_value) * number_of_months_expected
     return expected
 
 
