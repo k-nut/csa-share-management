@@ -7,7 +7,7 @@ from flask_login import login_user, logout_user, login_required
 
 from solawi import models
 from solawi.controller import merge, import_deposits
-from solawi.models import Share, Deposit, Person
+from solawi.models import Share, Deposit, Person, User
 
 from solawi.app import app, db
 from solawi.old_app import allowed_file
@@ -130,7 +130,6 @@ def post_shares_details(share_id):
     resp = share.json
     return jsonify(share=resp)
 
-
 @api.route("/shares", methods=["POST"])
 @login_required
 def add_share():
@@ -194,5 +193,13 @@ def upload_file():
 @login_required
 def get_person(person_id):
     return jsonify(Person.get(person_id).json)
+
+
+@api.route("/users", methods=["GET"])
+@login_required
+def user_list():
+    users = User.get_all_emails()
+    return jsonify(users=users)
+
 
 app.register_blueprint(api, url_prefix='/api/v1')

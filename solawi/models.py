@@ -271,6 +271,10 @@ class User(UserMixin, db.Model):
         return bcrypt.check_password_hash(self._password, password)
 
     @staticmethod
+    def get_all_emails():
+        return db.session.query(User.email).all()
+
+    @staticmethod
     def get(id):
         return db.session.query(User).get(id)
 
