@@ -10,7 +10,6 @@ from solawi.controller import merge, import_deposits
 from solawi.models import Share, Deposit, Person, User
 
 from solawi.app import app, db
-from solawi.old_app import allowed_file
 
 api = Blueprint('api', __name__)
 
@@ -176,6 +175,11 @@ def merge_shares():
         return jsonify(message='You need to supply share1 and share2'), 400
     merge(share1, share2)
     return jsonify(message='success')
+
+
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1] in ['csv', 'CSV']
 
 
 @api.route("/deposits/upload", methods=["POST"])
