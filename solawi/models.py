@@ -148,18 +148,6 @@ class Share(db.Model):
     def number_of_deposits(self):
         return len(self.valid_deposits)
 
-    @staticmethod
-    def set_value_for_id(bet_value, share_id):
-        share = Share.query.get(share_id)
-        share.bet_value = bet_value
-        share.save()
-
-    @staticmethod
-    def set_station_for_id(station_id, share_id):
-        share = Share.query.get(share_id)
-        share.station_id = station_id
-        share.save()
-
 
 class Station(db.Model):
     id = db.Column(db.Integer, primary_key=True)  # pylint: disable=invalid-name
