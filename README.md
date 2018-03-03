@@ -2,18 +2,24 @@
 
 Internal tool at our CSA (Community supported agriculture) group that helps manage finances.
 
+## Setup
+Make sure that all required environment variables are set.
+
+mainly:
+```
+FLASK_APP=solawi/app.py
+DATABASE_URL=postgres://<your_postgres_settings>
+```
+
 ## Creating db/running migrations
 
 ```bash
-DATABASE_URL=<postgres_path> python manage.py db upgrade
-# eg. DATABASE_URL=postgres://postgres@0.0.0.0:32768  python manage.py db upgrade
-
+flask db upgrade
 ```
 
 ## Running
 ```bash
-DATABASE_URL=<postgres_path> python manage.py runserver
-# eg. DATABASE_URL=postgres://postgres@0.0.0.0:32768 python manage.py runserver
+flask run
 ```
 
 
