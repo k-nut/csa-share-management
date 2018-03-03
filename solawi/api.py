@@ -60,28 +60,22 @@ def get_payment_list():
     query = """
 SELECT share.id,
        share.name,
-       sum(
-        CASE WHEN (NOT deposit.is_security OR deposit.is_security IS NULL)
-              AND (NOT deposit.ignore OR deposit.ignore IS NULL)
-              THEN amount
-              ELSE 0 END
-       ) AS total_deposits, 
-       count(deposit.amount) filter (where
-                                    (NOT deposit.ignore OR deposit.ignore IS NULL) 
-                                    AND (NOT deposit.ignore OR deposit.ignore IS NULL))
-       AS number_of_deposits,
        station.name AS station_name,
        share.bet_value,
        share.start_date,
        share.archived,
-       share.note
+       share.note,
+       deposit.ignore,
+       deposit.amount,
+       deposit.is_security
 FROM share 
 LEFT JOIN person ON share.id = person.share_id
 LEFT JOIN deposit ON deposit.person_id = person.id
 LEFT JOIN station ON share.station_id = station.id
-GROUP BY share.id, station.name, share.bet_value, share.start_date, share.name, share.archived
     """
     result = db.engine.execute(query)
+    import ipdb; ipdb.set_trace()
+    print(result)
     res = []
     for share in result:
         dict_share = dict(share)
@@ -128,6 +122,7 @@ def post_shares_details(share_id):
     share.save()
     resp = share.json
     return jsonify(share=resp)
+
 
 @api.route("/shares", methods=["POST"])
 @login_required
