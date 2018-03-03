@@ -48,7 +48,7 @@ def import_deposits(data):
             deposit.save()
 
             if person.share_id is None:
-                share = Share(person.name)
+                share = Share(name=person.name)
                 share.people.append(person)
                 share.bet_value = 0
                 share.save()

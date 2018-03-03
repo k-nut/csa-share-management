@@ -82,13 +82,6 @@ class Share(db.Model):
             "email": self.email
         }
 
-    def __init__(self, name, station=None, bet_value=None):
-        self.name = name
-        if station:
-            self.station = station
-        if bet_value:
-            self.bet_value = bet_value
-
     def delete(self):
         db.session.delete(self)
         db.session.commit()

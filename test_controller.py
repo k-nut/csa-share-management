@@ -28,8 +28,8 @@ class TestController(unittest.TestCase):
         from solawi.models import Share
         from solawi.controller import merge
 
-        share_1 = Share("With bet", bet_value=100.0)
-        share_2 = Share("Without bet")
+        share_1 = Share(name="With bet", bet_value=100.0)
+        share_2 = Share(name="Without bet")
 
         share_1.save()
         share_2.save()
@@ -43,8 +43,8 @@ class TestController(unittest.TestCase):
         from solawi.models import Share
         from solawi.controller import merge
 
-        share_1 = Share("Without bet")
-        share_2 = Share("With bet", bet_value=100.0)
+        share_1 = Share(name="Without bet")
+        share_2 = Share(name="With bet", bet_value=100.0)
 
         share_1.save()
         share_2.save()

@@ -43,7 +43,7 @@ class MyTest(unittest.TestCase):
 
         deposit.save()
 
-        share = Share("Firstname Lastname and Other One")
+        share = Share(name="Firstname Lastname and Other One")
         share.people.append(person)
         share.save()
         assert share.number_of_deposits == 1
@@ -71,7 +71,7 @@ class MyTest(unittest.TestCase):
 
         deposit.save()
 
-        share = Share("Firstname Lastname and Other One")
+        share = Share(name="Firstname Lastname and Other One")
         share.people.append(person)
         share.save()
         assert share.number_of_deposits == 1
@@ -101,7 +101,7 @@ class MyTest(unittest.TestCase):
 
         deposit.save()
 
-        share = Share("Firstname Lastname and Other One")
+        share = Share(name="Firstname Lastname and Other One")
         share.people.append(person)
         share.save()
         assert share.number_of_deposits == 1
@@ -119,7 +119,7 @@ class TestShare(unittest.TestCase):
     def test_expected_today_full_month(self):
         from solawi.models import Share
         import datetime
-        share = Share("Good Share", bet_value=80)
+        share = Share(name="Good Share", bet_value=80)
         share.start_date = datetime.date(2017, 1, 1)
         with freeze_time("2017-03-28"):
             self.assertEqual(share.expected_today(), 320)
