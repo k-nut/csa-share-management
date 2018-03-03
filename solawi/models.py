@@ -144,22 +144,6 @@ class Share(db.Model):
     def total_deposits(self):
         return sum(deposit.amount for deposit in self.valid_deposits)
 
-    def expected_today(self):
-        def diff_months(start, today):
-            start -= datetime.timedelta(days=30)
-            next_month = 0
-            if today.day > 24:
-                next_month = 1
-            return (today.year - start.year) * 12 + today.month - start.month + next_month
-
-        today = datetime.date.today()
-
-        start_date = self.start_date or datetime.date(2016, 5, 1)
-
-        number_of_months_expected = diff_months(start_date, today)
-        expected = self.bet_value * number_of_months_expected
-        return expected
-
     @property
     def number_of_deposits(self):
         return len(self.valid_deposits)
@@ -175,9 +159,6 @@ class Share(db.Model):
         share = Share.query.get(share_id)
         share.station_id = station_id
         share.save()
-
-    def difference_today(self):
-        return self.total_deposits - self.expected_today()
 
 
 class Station(db.Model):

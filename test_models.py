@@ -4,6 +4,7 @@ import os
 
 from freezegun import freeze_time
 
+from solawi.api import expected_today
 from solawi.app import app, db
 
 
@@ -122,4 +123,4 @@ class TestShare(unittest.TestCase):
         share = Share(name="Good Share", bet_value=80)
         share.start_date = datetime.date(2017, 1, 1)
         with freeze_time("2017-03-28"):
-            self.assertEqual(share.expected_today(), 320)
+            self.assertEqual(expected_today(share), 320)
