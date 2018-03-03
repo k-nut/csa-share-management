@@ -17,6 +17,12 @@ DATABASE_URL=postgres://<your_postgres_settings>
 flask db upgrade
 ```
 
+## Creating users
+
+```bash
+flask createuser <email> <password>
+```
+
 ## Running
 ```bash
 flask run
