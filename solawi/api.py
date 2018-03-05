@@ -61,14 +61,11 @@ def get_payment_list():
 SELECT share.id,
        share.name,
        sum(
-        CASE WHEN (NOT deposit.is_security OR deposit.is_security IS NULL)
-              AND (NOT deposit.ignore OR deposit.ignore IS NULL)
+        CASE WHEN (NOT deposit.is_security AND NOT deposit.ignore)
               THEN amount
               ELSE 0 END
        ) AS total_deposits, 
-       count(deposit.amount) filter (where
-                                    (NOT deposit.ignore OR deposit.ignore IS NULL) 
-                                    AND (NOT deposit.ignore OR deposit.ignore IS NULL))
+       count(case when not deposit.ignore then 1 end)
        AS number_of_deposits,
        station.name AS station_name,
        share.bet_value,

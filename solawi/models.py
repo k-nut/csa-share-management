@@ -15,9 +15,9 @@ class Deposit(db.Model):
     id = db.Column(db.Integer, primary_key=True)  # pylint: disable=invalid-name
     amount = db.Column(db.Numeric)
     timestamp = db.Column(db.DateTime)
-    is_security = db.Column(db.Boolean)
+    is_security = db.Column(db.Boolean, default=False)
     title = db.Column(db.Text)
-    ignore = db.Column(db.Boolean)
+    ignore = db.Column(db.Boolean, default=False)
 
     person_id = db.Column(db.Integer, db.ForeignKey('person.id'))
     person = db.relationship('Person',
