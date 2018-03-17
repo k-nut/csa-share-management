@@ -12,7 +12,7 @@ def merge(first_share_id, second_share_id):
     first_share = Share.query.get(first_share_id)
     second_share = Share.query.get(second_share_id)
 
-    if first_share.bet_value and not second_share.bet_value:
+    if first_share.bets and not second_share.bets:
         merge_into = first_share
         take_from = second_share
     else:

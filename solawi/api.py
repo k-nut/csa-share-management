@@ -4,29 +4,15 @@ import datetime
 from decimal import Decimal
 from flask import request, jsonify, Blueprint
 from flask_login import login_user, logout_user, login_required
+from sqlalchemy.orm import eagerload, joinedload
 
 from solawi import models
 from solawi.controller import merge, import_deposits
-from solawi.models import Share, Deposit, Person, User
+from solawi.models import Share, Deposit, Person, User, Bet
 
 from solawi.app import app, db
 
 api = Blueprint('api', __name__)
-
-
-def expected_today(share):
-    def diff_months(start, today):
-        start -= datetime.timedelta(days=30)
-        next_month = 0
-        if today.day > 24:
-            next_month = 1
-        return (today.year - start.year) * 12 + today.month - start.month + next_month
-
-    today = datetime.date.today()
-
-    number_of_months_expected = diff_months(share.start_date, today)
-    expected = Decimal(share.bet_value) * number_of_months_expected
-    return expected
 
 
 @api.route("/login", methods=["POST"])
@@ -50,7 +36,7 @@ def api_logout():
 @api.route("/shares")
 @login_required
 def shares_list():
-    shares = [share.json for share in Share.query.all()]
+    shares = [share.json for share in Share.query.options(joinedload('bets')).all()]
     return jsonify(shares=shares)
 
 
@@ -68,23 +54,21 @@ SELECT share.id,
        count(case when not deposit.ignore then 1 end)
        AS number_of_deposits,
        station.name AS station_name,
-       share.bet_value,
-       share.start_date,
        share.archived,
-       share.note
+       share.note,
+       expected_today(share.id)
 FROM share 
 LEFT JOIN person ON share.id = person.share_id
 LEFT JOIN deposit ON deposit.person_id = person.id
 LEFT JOIN station ON share.station_id = station.id
-GROUP BY share.id, station.name, share.bet_value, share.start_date, share.name, share.archived
+GROUP BY share.id, station.name, share.name, share.archived
     """
     result = db.engine.execute(query)
     res = []
     for share in result:
         dict_share = dict(share)
-        dict_share['expected_today'] = expected_today(share)
         dict_share['total_deposits'] = share.total_deposits or 0
-        dict_share['difference_today'] = - (dict_share['expected_today'] - dict_share['total_deposits'])
+        dict_share['difference_today'] = - (Decimal(dict_share['expected_today'] or 0) - dict_share['total_deposits'])
         res.append(dict_share)
     return jsonify(shares=res)
 
@@ -101,9 +85,9 @@ def bets_list():
 def shares_details(share_id):
     share = Share.get(share_id)
     dict_share = share.json
-    dict_share['expected_today'] = expected_today(share)
+    dict_share['expected_today'] = share.expected_today
     dict_share['total_deposits'] = share.total_deposits or 0
-    dict_share['difference_today'] = - (dict_share['expected_today'] - dict_share['total_deposits'])
+    dict_share['difference_today'] = - (Decimal(dict_share['expected_today']) - dict_share['total_deposits'])
     return jsonify(share=dict_share)
 
 
@@ -112,6 +96,39 @@ def shares_details(share_id):
 def share_deposits(share_id):
     deposits = Share.get_deposits(share_id)
     return jsonify(deposits=deposits)
+
+
+@api.route("/shares/<int:share_id>/bets", methods=["GET"])
+@login_required
+def share_bets(share_id):
+    bets = Share.get_bets(share_id)
+    return jsonify(bets=bets)
+
+
+@api.route("/shares/<int:share_id>/bets", methods=["POST", "PUT"])
+@login_required
+def bet_details(share_id):
+    json = request.get_json()
+    if json.get("id"):
+        bet = Bet.get(json["id"])
+    else:
+        bet = Bet()
+        bet.share_id = share_id
+
+    for field in ["value", "start_date", "end_date"]:
+        if field in json:
+            setattr(bet, field, json.get(field))
+    bet.save()
+
+    return jsonify(bet=bet.to_json())
+
+
+@api.route("/shares/<int:share_id>/bets/<int:bet_id>", methods=["DELETE"])
+@login_required
+def delete_bet(share_id, bet_id):
+    bet = Bet.get(bet_id)
+    bet.delete()
+    return jsonify()
 
 
 @api.route("/shares/<int:share_id>", methods=["POST"])
@@ -125,6 +142,7 @@ def post_shares_details(share_id):
     share.save()
     resp = share.json
     return jsonify(share=resp)
+
 
 @api.route("/shares", methods=["POST"])
 @login_required

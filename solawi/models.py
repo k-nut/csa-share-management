@@ -5,7 +5,7 @@ from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import class_mapper
 from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy import UniqueConstraint
+from sqlalchemy import UniqueConstraint, func
 from flask_login import UserMixin
 
 from solawi.app import db, app, bcrypt
@@ -55,15 +55,48 @@ class Deposit(db.Model):
         return '<Deposit %i %r %s>' % (self.amount, self.timestamp, self.person.name)
 
 
+class Bet(db.Model):
+    id = db.Column(db.Integer, primary_key=True)  # pylint: disable=invalid-name
+    value = db.Column(db.Numeric)
+    start_date = db.Column(db.DateTime, default=datetime.date(2017, 5, 1))
+    end_date = db.Column(db.DateTime, default=datetime.date(2017, 12, 31))
+    share_id = db.Column(db.Integer, db.ForeignKey('share.id'))
+
+    @staticmethod
+    def get(id):
+        return db.session.query(Bet).get(id)
+
+    def delete(self):
+        try:
+            db.session.delete(self)
+            db.session.commit()
+        except IntegrityError as e:
+            db.session.rollback()
+
+    def save(self):
+        try:
+            db.session.add(self)
+            db.session.commit()
+        except IntegrityError as e:
+            db.session.rollback()
+
+    def to_json(self):
+        return dict(start_date=self.start_date,
+                    end_date=self.end_date,
+                    value=self.value,
+                    id=self.id)
+
+
 class Share(db.Model):
     id = db.Column(db.Integer, primary_key=True)  # pylint: disable=invalid-name
     name = db.Column(db.String)
-    bet_value = db.Column(db.Float)
     people = db.relationship('Person',
                              backref="share",
                              cascade="all, delete-orphan",
                              lazy='dynamic')
-    start_date = db.Column(db.DateTime, default=datetime.date(2017, 5, 1))
+    bets = db.relationship('Bet',
+                           backref="share",
+                           cascade="all, delete-orphan")
     station_id = db.Column(db.Integer, db.ForeignKey('station.id'))
     note = db.Column(db.Text)
     archived = db.Column(db.Boolean, default=False)
@@ -71,12 +104,12 @@ class Share(db.Model):
 
     @property
     def json(self):
+        bets = [bet.to_json() for bet in self.bets]
         return {
             "id": self.id,
             "name": self.name,
             "archived": self.archived,
-            "bet_value": self.bet_value,
-            "start_date": self.start_date.isoformat(),
+            "bets": bets,
             "station_id": self.station_id,
             "note": self.note,
             "email": self.email
@@ -99,10 +132,10 @@ class Share(db.Model):
 
     @staticmethod
     def get_deposits(share_id):
-        res =  db.session.query(Deposit, Person.name, Person.id)\
-                          .join(Person) \
-                          .filter(Person.share_id == share_id) \
-                          .all()
+        res = db.session.query(Deposit, Person.name, Person.id) \
+            .join(Person) \
+            .filter(Person.share_id == share_id) \
+            .all()
         result = []
         for deposit, person_name, person_id in res:
             result.append(dict(
@@ -115,7 +148,14 @@ class Share(db.Model):
                 ignore=deposit.ignore,
                 is_security=deposit.is_security
             ))
-        return(result)
+        return (result)
+
+    @staticmethod
+    def get_bets(share_id):
+        res = db.session.query(Bet) \
+            .filter(Bet.share_id == share_id) \
+            .all()
+        return [bet.to_json() for bet in res]
 
     @property
     def deposits(self):
@@ -147,6 +187,10 @@ class Share(db.Model):
     @property
     def number_of_deposits(self):
         return len(self.valid_deposits)
+
+    @property
+    def expected_today(self):
+        return db.session.query(func.expected_today(self.id)).one_or_none()[0] or 0
 
 
 class Station(db.Model):
