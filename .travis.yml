@@ -1,7 +1,13 @@
 language: python
 python:
   - "3.6"
+env:
+  - DATABASE_URL_TEST="postgres://postgres@localhost/test_solawi"
+addons:
+  - postgresql: "9.4"
 install:
   - "pip install -r requirements.txt"
+before_script:
+  - "createdb -U postgres test_solawi"
 script:
   - "py.test test_*.py"

@@ -3,9 +3,10 @@ import tempfile
 import os
 
 from freezegun import freeze_time
+from flask_migrate import upgrade
 
-from solawi.api import expected_today
 from solawi.app import app, db
+from solawi.models import Bet
 
 
 class MyTest(unittest.TestCase):
@@ -13,19 +14,16 @@ class MyTest(unittest.TestCase):
         # next line needed so that db.create_all knows what to create
         from solawi.models import Deposit, Share, Person
 
-        self.db_fd, self.temp_filepath = tempfile.mkstemp()
-        database_path = 'sqlite:///{}'.format(self.temp_filepath)
-        app.config['SQLALCHEMY_DATABASE_URI'] = database_path
+        app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get("DATABASE_URL_TEST")
         app.config['TESTING'] = True
         self.app = app.test_client()
-
         db.create_all()
+        with app.app_context():
+            print(upgrade())
 
     def tearDown(self):
         db.session.remove()
         db.drop_all()
-        os.close(self.db_fd)
-        os.remove(self.temp_filepath)
 
     def test_person(self):
         from datetime import date
@@ -115,12 +113,16 @@ class MyTest(unittest.TestCase):
         assert share.total_deposits == 0
         assert len(Deposit.query.all()) == 1
 
-
-class TestShare(unittest.TestCase):
     def test_expected_today_full_month(self):
         from solawi.models import Share
         import datetime
-        share = Share(name="Good Share", bet_value=80)
-        share.start_date = datetime.date(2017, 1, 1)
-        with freeze_time("2017-03-28"):
-            self.assertEqual(expected_today(share), 320)
+        share = Share(name="Good Share")
+        share.save()
+        bet = Bet(start_date=datetime.date(2017, 1, 1),
+                  end_date=datetime.date(2017, 3, 31),
+                  value=100,
+                  share_id=share.id
+                  )
+        bet.save()
+        assert share.expected_today == 300
+
