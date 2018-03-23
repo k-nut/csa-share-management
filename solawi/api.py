@@ -136,7 +136,7 @@ def delete_bet(share_id, bet_id):
 def post_shares_details(share_id):
     share = Share.get(share_id)
     json = request.get_json()
-    for field in ["bet_value", "start_date", "station_id", "note", "email", "archived"]:
+    for field in ["station_id", "note", "email", "archived", "name"]:
         if field in json:
             setattr(share, field, json.get(field))
     share.save()
