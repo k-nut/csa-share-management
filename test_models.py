@@ -17,12 +17,12 @@ class MyTest(unittest.TestCase):
         app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get("DATABASE_URL_TEST")
         app.config['TESTING'] = True
         self.app = app.test_client()
-        db.create_all()
         with app.app_context():
-            print(upgrade())
+            upgrade()
 
     def tearDown(self):
         db.session.remove()
+        db.engine.execute("DROP TABLE alembic_version")
         db.drop_all()
 
     def test_person(self):
