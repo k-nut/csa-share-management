@@ -1,30 +1,8 @@
-import unittest
-import tempfile
-import os
-
-from freezegun import freeze_time
-from flask_migrate import upgrade
-
-from solawi.app import app, db
 from solawi.models import Bet
+from test_helpers import DBTest
 
 
-class MyTest(unittest.TestCase):
-    def setUp(self):
-        # next line needed so that db.create_all knows what to create
-        from solawi.models import Deposit, Share, Person
-
-        app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get("DATABASE_URL_TEST")
-        app.config['TESTING'] = True
-        self.app = app.test_client()
-        with app.app_context():
-            upgrade()
-
-    def tearDown(self):
-        db.session.remove()
-        db.engine.execute("DROP TABLE alembic_version")
-        db.drop_all()
-
+class ModelTest(DBTest):
     def test_person(self):
         from datetime import date
         from solawi.models import Person, Deposit, Share
