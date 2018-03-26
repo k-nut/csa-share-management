@@ -23,7 +23,7 @@ class DBTest(unittest.TestCase):
         self.app = app.test_client()
 
     def tearDown(self):
-        for tbl in reversed(db.metadata.sorted_tables):
-            db.engine.execute(tbl.delete())
+        for table in reversed(db.metadata.sorted_tables):
+            db.engine.execute(table.delete())
         db.session.commit()
         db.session.remove()
