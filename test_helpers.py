@@ -4,7 +4,6 @@ import os
 from flask_migrate import upgrade
 
 from solawi.app import app, db
-from solawi.models import Bet, Share, Deposit, Person
 
 
 class DBTest(unittest.TestCase):
@@ -24,9 +23,7 @@ class DBTest(unittest.TestCase):
         self.app = app.test_client()
 
     def tearDown(self):
-        db.session.query(Deposit).delete()
-        db.session.query(Person).delete()
-        db.session.query(Bet).delete()
-        db.session.query(Share).delete()
+        for tbl in reversed(db.metadata.sorted_tables):
+            db.engine.execute(tbl.delete())
         db.session.commit()
         db.session.remove()
