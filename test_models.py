@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from solawi.models import Bet
 from test_helpers import DBTest
 
@@ -104,3 +106,15 @@ class ModelTest(DBTest):
         bet.save()
         assert share.expected_today == 300
 
+    def test_expected_today_is_decimal(self):
+        from solawi.models import Share
+        import datetime
+        share = Share(name="Good Share")
+        share.save()
+        bet = Bet(start_date=datetime.date(2017, 1, 1),
+                  end_date=datetime.date(2017, 3, 31),
+                  value=97.17,
+                  share_id=share.id
+                  )
+        bet.save()
+        assert share.expected_today == Decimal('291.51')

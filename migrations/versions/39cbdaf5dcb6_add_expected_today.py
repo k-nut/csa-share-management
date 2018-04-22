@@ -18,6 +18,7 @@ from sqlalchemy.dialects import postgresql
 def upgrade():
     connection = op.get_bind()
 
+    connection.execute("DROP FUNCTION if exists expected_today(int);")
     connection.execute("""
     CREATE OR REPLACE FUNCTION expected_today (the_id int) RETURNS FLOAT AS $$
 SELECT sum(bets.expected) FROM (
