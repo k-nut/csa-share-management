@@ -1,6 +1,7 @@
 import csv
 
 import datetime
+import flask_login
 from decimal import Decimal
 from flask import request, jsonify, Blueprint
 from flask_login import login_user, logout_user, login_required
@@ -171,7 +172,7 @@ def post_deposit(deposit_id):
 @api.route("/deposits/", methods=["PUT"])
 @login_required
 def put_deposit():
-    deposit = Deposit()
+    deposit = Deposit(added_by=flask_login.current_user.id)
     json = request.get_json()
     json.pop("id", None)
     for field in json:

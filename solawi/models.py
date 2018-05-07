@@ -18,6 +18,7 @@ class Deposit(db.Model):
     is_security = db.Column(db.Boolean, default=False)
     title = db.Column(db.Text)
     ignore = db.Column(db.Boolean, default=False)
+    added_by = db.Column(db.Integer, db.ForeignKey('user.id'))
 
     person_id = db.Column(db.Integer, db.ForeignKey('person.id'))
     person = db.relationship('Person',
@@ -132,17 +133,19 @@ class Share(db.Model):
 
     @staticmethod
     def get_deposits(share_id):
-        res = db.session.query(Deposit, Person.name, Person.id) \
+        res = db.session.query(Deposit, Person.name, Person.id, User.email) \
             .join(Person) \
+            .outerjoin(User, User.id == Deposit.added_by) \
             .filter(Person.share_id == share_id) \
             .all()
         result = []
-        for deposit, person_name, person_id in res:
+        for deposit, person_name, person_id, adder_email in res:
             result.append(dict(
                 id=deposit.id,
                 timestamp=deposit.timestamp,
                 amount=deposit.amount,
                 title=deposit.title,
+                added_by_email=adder_email,
                 person_id=person_id,
                 person_name=person_name,
                 ignore=deposit.ignore,
