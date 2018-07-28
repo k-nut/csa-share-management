@@ -1,4 +1,4 @@
-# CSA Share Management [![Build Status](https://travis-ci.org/k-nut/csa-share-management.svg?branch=master)](https://travis-ci.org/k-nut/csa-share-management)
+# CSA Share Management [![Build Status](https://travis-ci.org/k-nut/csa-share-management.svg?branch=master)](https://travis-ci.org/k-nut/csa-share-management) [![codecov](https://codecov.io/gh/k-nut/csa-share-management/branch/master/graph/badge.svg)](https://codecov.io/gh/k-nut/csa-share-management)
 
 Internal tool at our CSA (Community supported agriculture) group that helps manage finances.
 
