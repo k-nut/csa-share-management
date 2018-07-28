@@ -32,6 +32,17 @@ class AuthorizedViewsTests(AuthorizedTest):
 
         self.assertEqual(response.status_code, 404)
 
+    def test_add_share(self):
+        from solawi.models import Share
+
+        self.assertEqual(db.session.query(Share).count(), 0)
+
+        response = self.app.post(f"/api/v1/shares", json={"note": "my note"})
+
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(db.session.query(Share).count(), 1)
+        self.assertEqual(response.get_json()["share"]["note"], "my note")
+
 
 class UnAuthorizedViewsTests(DBTest):
     def test_delete_bet_required_auth(self):
@@ -49,3 +60,12 @@ class UnAuthorizedViewsTests(DBTest):
         self.assertEqual(response.status_code, 401)
         self.assertEqual(db.session.query(Bet).count(), 1)
 
+    def test_add_share_unauthorized(self):
+        from solawi.models import Share
+
+        self.assertEqual(db.session.query(Share).count(), 0)
+
+        response = self.app.post(f"/api/v1/shares", json={"note": "my note"})
+
+        self.assertEqual(response.status_code, 401)
+        self.assertEqual(db.session.query(Share).count(), 0)
