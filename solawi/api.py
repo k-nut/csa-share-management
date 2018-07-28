@@ -127,9 +127,9 @@ def bet_details(share_id):
 @api.route("/shares/<int:share_id>/bets/<int:bet_id>", methods=["DELETE"])
 @login_required
 def delete_bet(share_id, bet_id):
-    bet = Bet.get(bet_id)
+    bet = db.session.query(Bet).get_or_404(bet_id)
     bet.delete()
-    return jsonify()
+    return jsonify(), 204
 
 
 @api.route("/shares/<int:share_id>", methods=["POST"])

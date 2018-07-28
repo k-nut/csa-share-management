@@ -20,6 +20,8 @@ class DBTest(unittest.TestCase):
         db.engine.execute("DROP TABLE alembic_version")
 
     def setUp(self):
+        app.config["LOGIN_DISABLED"] = False
+        app.login_manager.init_app(app)
         self.app = app.test_client()
 
     def tearDown(self):
@@ -27,3 +29,10 @@ class DBTest(unittest.TestCase):
             db.engine.execute(table.delete())
         db.session.commit()
         db.session.remove()
+
+
+class AuthorizedTest(DBTest):
+    def setUp(self):
+        app.config["LOGIN_DISABLED"] = True
+        app.login_manager.init_app(app)
+        self.app = app.test_client()
