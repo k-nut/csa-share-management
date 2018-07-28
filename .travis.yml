@@ -7,7 +7,10 @@ addons:
   - postgresql: "9.4"
 install:
   - "pip install -r requirements.txt"
+  - pip install codecov
 before_script:
   - "createdb -U postgres test_solawi"
 script:
-  - "py.test test_*.py"
+  - "pytest --cov=./"
+after_script:
+  - codecov
