@@ -1,6 +1,8 @@
 language: python
+dist: xenial
 python:
   - "3.6"
+  - "3.7"
 env:
   - DATABASE_URL_TEST="postgres://postgres@localhost/test_solawi"
 addons:
