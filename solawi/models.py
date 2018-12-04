@@ -11,7 +11,28 @@ from flask_login import UserMixin
 from solawi.app import db, app, bcrypt
 
 
-class Deposit(db.Model):
+class BaseModel():
+    def save(self):
+        try:
+            db.session.add(self)
+            db.session.commit()
+        except IntegrityError as e:
+            print("failing")
+            print(e)
+            db.session.rollback()
+            app.logger.debug(e)
+            return None
+        return self
+
+    def delete(self):
+        try:
+            db.session.delete(self)
+            db.session.commit()
+        except IntegrityError as e:
+            db.session.rollback()
+
+
+class Deposit(db.Model, BaseModel):
     id = db.Column(db.Integer, primary_key=True)  # pylint: disable=invalid-name
     amount = db.Column(db.Numeric)
     timestamp = db.Column(db.DateTime)
@@ -31,10 +52,6 @@ class Deposit(db.Model):
                                        name='_all_fields'),
                       )
 
-    @staticmethod
-    def get(id):
-        return db.session.query(Deposit).get(id)
-
     @property
     def json(self):
         d = {}
@@ -44,42 +61,20 @@ class Deposit(db.Model):
             d[name] = getattr(self, name)
         return d
 
-    def save(self):
-        try:
-            db.session.add(self)
-            db.session.commit()
-        except IntegrityError:
-            db.session.rollback()
-            app.logger.debug("Skipping existing Deposit for %s", self)
-
     def __repr__(self):
         return '<Deposit %i %r %s>' % (self.amount, self.timestamp, self.person.name)
 
 
-class Bet(db.Model):
+class Bet(db.Model, BaseModel):
     id = db.Column(db.Integer, primary_key=True)  # pylint: disable=invalid-name
     value = db.Column(db.Numeric)
     start_date = db.Column(db.DateTime, default=datetime.date(2017, 5, 1))
-    end_date = db.Column(db.DateTime, default=datetime.date(2017, 12, 31))
+    end_date = db.Column(db.DateTime)
     share_id = db.Column(db.Integer, db.ForeignKey('share.id'))
 
     @staticmethod
     def get(id):
         return db.session.query(Bet).get(id)
-
-    def delete(self):
-        try:
-            db.session.delete(self)
-            db.session.commit()
-        except IntegrityError as e:
-            db.session.rollback()
-
-    def save(self):
-        try:
-            db.session.add(self)
-            db.session.commit()
-        except IntegrityError as e:
-            db.session.rollback()
 
     def to_json(self):
         return dict(start_date=self.start_date,
@@ -88,7 +83,7 @@ class Bet(db.Model):
                     id=self.id)
 
 
-class Share(db.Model):
+class Share(db.Model, BaseModel):
     id = db.Column(db.Integer, primary_key=True)  # pylint: disable=invalid-name
     name = db.Column(db.String)
     people = db.relationship('Person',
@@ -119,13 +114,6 @@ class Share(db.Model):
     def delete(self):
         db.session.delete(self)
         db.session.commit()
-
-    def save(self):
-        try:
-            db.session.add(self)
-            db.session.commit()
-        except IntegrityError as e:
-            db.session.rollback()
 
     @staticmethod
     def get(share_id):
@@ -196,7 +184,7 @@ class Share(db.Model):
         return db.session.query(func.expected_today(self.id)).one_or_none()[0] or 0
 
 
-class Station(db.Model):
+class Station(db.Model, BaseModel):
     id = db.Column(db.Integer, primary_key=True)  # pylint: disable=invalid-name
     name = db.Column(db.String(120), unique=True)
     shares = db.relationship('Share', backref='station', lazy='dynamic')
@@ -206,32 +194,18 @@ class Station(db.Model):
         return {"name": self.name,
                 "id": self.id}
 
-    def save(self):
-        try:
-            db.session.add(self)
-            db.session.commit()
-        except IntegrityError:
-            db.session.rollback()
-
     @staticmethod
     def get_by_name(name):
         return db.session.query(Station).filter_by(name=name).first()
 
 
-class Person(db.Model):
+class Person(db.Model, BaseModel):
     id = db.Column(db.Integer, primary_key=True)  # pylint: disable=invalid-name
     name = db.Column(db.String(120), unique=True)
     share_id = db.Column(db.Integer, db.ForeignKey('share.id'))
 
     def __init__(self, name):
         self.name = name
-
-    def save(self):
-        try:
-            db.session.add(self)
-            db.session.commit()
-        except IntegrityError:
-            db.session.rollback()
 
     @staticmethod
     def get(person_id):

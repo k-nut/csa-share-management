@@ -1,7 +1,56 @@
+from datetime import datetime, date
 from decimal import Decimal
 
-from solawi.models import Bet
+from solawi.models import Bet, Deposit, Share, Station
+from test_factories import ShareFactory, BetFactory
 from test_helpers import DBTest
+
+
+class DepositTest(DBTest):
+    def test_jsonify(self):
+        deposit = Deposit(title="June Payment John Doe",
+                          timestamp=datetime(2018, 1, 1, 12, 0),
+                          amount=80.21)
+        deposit.save()
+
+        expected = {'added_by': None,
+                    'amount': Decimal('80.21'),
+                    'id': deposit.id,
+                    'ignore': False,
+                    'is_security': False,
+                    'person_id': None,
+                    'timestamp': datetime(2018, 1, 1, 12, 0),
+                    'title': 'June Payment John Doe'}
+        assert deposit.json == expected
+
+
+class BetTest(DBTest):
+    def test_jsonify(self):
+        bet = BetFactory()
+
+        expected = {'start_date': datetime(2018, 1, 1, 0, 0),
+                    'end_date': None,
+                    'id': bet.id,
+                    'value': Decimal('90'),
+                    }
+        assert bet.to_json() == expected
+
+class ShareTest(DBTest):
+    def test_jsonify(self):
+        share = ShareFactory(name="John Doe & Sabrina Doe",
+                             email="john@example.com")
+
+        expected = {
+            "id": share.id,
+            "name": "John Doe & Sabrina Doe",
+            "archived": False,
+            "bets": [],
+            "station_id": share.station.id,
+            "note": None,
+            "email": "john@example.com"
+        }
+
+        assert share.json == expected
 
 
 class ModelTest(DBTest):
