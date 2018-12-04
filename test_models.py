@@ -118,3 +118,16 @@ class ModelTest(DBTest):
                   )
         bet.save()
         assert share.expected_today == Decimal('291.51')
+
+    def test_expected_today_across_years(self):
+        from solawi.models import Share
+        import datetime
+        share = Share(name="Good Share")
+        share.save()
+        bet = Bet(start_date=datetime.date(2016, 1, 1),
+                  end_date=datetime.date(2017, 3, 31),
+                  value=10,
+                  share_id=share.id
+                  )
+        bet.save()
+        assert share.expected_today == 150
