@@ -204,9 +204,6 @@ class Person(db.Model, BaseModel):
     name = db.Column(db.String(120), unique=True)
     share_id = db.Column(db.Integer, db.ForeignKey('share.id'))
 
-    def __init__(self, name):
-        self.name = name
-
     @staticmethod
     def get(person_id):
         return db.session.query(Person).get(person_id)
@@ -235,7 +232,7 @@ class Person(db.Model, BaseModel):
             exisiting = Person.query.filter_by(name=name).one()
             return exisiting
         except NoResultFound:
-            new_person = Person(name)
+            new_person = Person(name=name)
             db.session.add(new_person)
             db.session.commit()
             return new_person

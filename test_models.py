@@ -2,7 +2,7 @@ from datetime import datetime, date
 from decimal import Decimal
 
 from solawi.models import Bet, Deposit, Share, Station
-from test_factories import ShareFactory, BetFactory
+from test_factories import ShareFactory, BetFactory, PersonFactory
 from test_helpers import DBTest
 
 
@@ -51,6 +51,20 @@ class ShareTest(DBTest):
         }
 
         assert share.json == expected
+
+class PersonTest(DBTest):
+    def test_jsonify(self):
+        share = ShareFactory.create()
+        person = PersonFactory(name="Misses Cash", share=share)
+
+        expected = {
+            "id": person.id,
+            "name": "Misses Cash",
+            "share_id": share.id
+        }
+
+        assert person.json == expected
+
 
 
 class ModelTest(DBTest):

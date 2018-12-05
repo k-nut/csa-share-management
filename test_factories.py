@@ -1,9 +1,8 @@
 import datetime
-
 import factory
 
 from solawi.app import db
-from solawi.models import Station, Share, Bet
+from solawi.models import Station, Share, Bet, Person
 
 
 class StationFactory(factory.alchemy.SQLAlchemyModelFactory):
@@ -25,6 +24,7 @@ class ShareFactory(factory.alchemy.SQLAlchemyModelFactory):
     name = factory.Sequence(lambda n: u'Share %d' % n)
     email = factory.Faker('safe_email')
 
+
 class BetFactory(factory.alchemy.SQLAlchemyModelFactory):
     class Meta:
         model = Bet
@@ -35,3 +35,13 @@ class BetFactory(factory.alchemy.SQLAlchemyModelFactory):
     end_date = None
     share = factory.SubFactory(ShareFactory)
     value = 90
+
+
+class PersonFactory(factory.alchemy.SQLAlchemyModelFactory):
+    class Meta:
+        model = Person
+        sqlalchemy_session = db.session   # the SQLAlchemy session object
+        sqlalchemy_session_persistence = 'commit'
+
+    name = factory.Faker('full_name')
+    share = factory.SubFactory(ShareFactory)
