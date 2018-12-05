@@ -31,6 +31,11 @@ class BaseModel():
         except IntegrityError as e:
             db.session.rollback()
 
+    @classmethod
+    def get(cls, id):
+        return db.session.query(cls).get(id)
+
+
     @property
     def json(self):
         d = {}
@@ -72,10 +77,6 @@ class Bet(db.Model, BaseModel):
     end_date = db.Column(db.DateTime)
     share_id = db.Column(db.Integer, db.ForeignKey('share.id'))
 
-    @staticmethod
-    def get(id):
-        return db.session.query(Bet).get(id)
-
 
 class Share(db.Model, BaseModel):
     id = db.Column(db.Integer, primary_key=True)  # pylint: disable=invalid-name
@@ -108,10 +109,6 @@ class Share(db.Model, BaseModel):
     def delete(self):
         db.session.delete(self)
         db.session.commit()
-
-    @staticmethod
-    def get(share_id):
-        return db.session.query(Share).get(share_id)
 
     @staticmethod
     def get_deposits(share_id):
@@ -192,10 +189,6 @@ class Person(db.Model, BaseModel):
     id = db.Column(db.Integer, primary_key=True)  # pylint: disable=invalid-name
     name = db.Column(db.String(120), unique=True)
     share_id = db.Column(db.Integer, db.ForeignKey('share.id'))
-
-    @staticmethod
-    def get(person_id):
-        return db.session.query(Person).get(person_id)
 
     @property
     def deposits(self):
