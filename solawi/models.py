@@ -31,6 +31,15 @@ class BaseModel():
         except IntegrityError as e:
             db.session.rollback()
 
+    @property
+    def json(self):
+        d = {}
+        columns = class_mapper(self.__class__).columns
+        for c in columns:
+            name = c.name
+            d[name] = getattr(self, name)
+        return d
+
 
 class Deposit(db.Model, BaseModel):
     id = db.Column(db.Integer, primary_key=True)  # pylint: disable=invalid-name
@@ -52,15 +61,6 @@ class Deposit(db.Model, BaseModel):
                                        name='_all_fields'),
                       )
 
-    @property
-    def json(self):
-        d = {}
-        columns = class_mapper(self.__class__).columns
-        for c in columns:
-            name = c.name
-            d[name] = getattr(self, name)
-        return d
-
     def __repr__(self):
         return '<Deposit %i %r %s>' % (self.amount, self.timestamp, self.person.name)
 
@@ -75,12 +75,6 @@ class Bet(db.Model, BaseModel):
     @staticmethod
     def get(id):
         return db.session.query(Bet).get(id)
-
-    def to_json(self):
-        return dict(start_date=self.start_date,
-                    end_date=self.end_date,
-                    value=self.value,
-                    id=self.id)
 
 
 class Share(db.Model, BaseModel):
@@ -100,7 +94,7 @@ class Share(db.Model, BaseModel):
 
     @property
     def json(self):
-        bets = [bet.to_json() for bet in self.bets]
+        bets = [bet.json for bet in self.bets]
         return {
             "id": self.id,
             "name": self.name,
@@ -146,7 +140,7 @@ class Share(db.Model, BaseModel):
         res = db.session.query(Bet) \
             .filter(Bet.share_id == share_id) \
             .all()
-        return [bet.to_json() for bet in res]
+        return [bet.json for bet in res]
 
     @property
     def deposits(self):
@@ -189,11 +183,6 @@ class Station(db.Model, BaseModel):
     name = db.Column(db.String(120), unique=True)
     shares = db.relationship('Share', backref='station', lazy='dynamic')
 
-    @property
-    def json(self):
-        return {"name": self.name,
-                "id": self.id}
-
     @staticmethod
     def get_by_name(name):
         return db.session.query(Station).filter_by(name=name).first()
@@ -207,15 +196,6 @@ class Person(db.Model, BaseModel):
     @staticmethod
     def get(person_id):
         return db.session.query(Person).get(person_id)
-
-    @property
-    def json(self):
-        d = {}
-        columns = class_mapper(self.__class__).columns
-        for c in columns:
-            name = c.name
-            d[name] = getattr(self, name)
-        return d
 
     @property
     def deposits(self):

@@ -26,14 +26,17 @@ class DepositTest(DBTest):
 
 class BetTest(DBTest):
     def test_jsonify(self):
-        bet = BetFactory()
+        share = ShareFactory.create()
+        bet = BetFactory(share=share)
 
         expected = {'start_date': datetime(2018, 1, 1, 0, 0),
                     'end_date': None,
                     'id': bet.id,
                     'value': Decimal('90'),
+                    'share_id': share.id
                     }
-        assert bet.to_json() == expected
+        assert bet.json == expected
+
 
 class ShareTest(DBTest):
     def test_jsonify(self):
