@@ -1,4 +1,5 @@
 from solawi.app import db
+from test_factories import ShareFactory, BetFactory
 from test_helpers import DBTest, AuthorizedTest
 
 
@@ -6,10 +7,8 @@ class AuthorizedViewsTests(AuthorizedTest):
     def test_delete_bet(self):
         from solawi.models import Bet, Share
 
-        share = Share(name="test share")
-        share.save()
-        bet = Bet(share_id=share.id)
-        bet.save()
+        bet = BetFactory.create()
+        share = bet.share
 
         self.assertEqual(db.session.query(Bet).count(), 1)
 
@@ -21,10 +20,8 @@ class AuthorizedViewsTests(AuthorizedTest):
     def test_delete_bet_unkown_bet(self):
         from solawi.models import Bet, Share
 
-        share = Share(name="test share")
-        share.save()
-        bet = Bet(share_id=share.id)
-        bet.save()
+        bet = BetFactory.create()
+        share = bet.share
 
         self.assertEqual(db.session.query(Bet).count(), 1)
 
@@ -48,10 +45,8 @@ class UnAuthorizedViewsTests(DBTest):
     def test_delete_bet_required_auth(self):
         from solawi.models import Bet, Share
 
-        share = Share(name="test share")
-        share.save()
-        bet = Bet(share_id=share.id)
-        bet.save()
+        bet: Bet = BetFactory.create()
+        share = bet.share
 
         self.assertEqual(db.session.query(Bet).count(), 1)
 
