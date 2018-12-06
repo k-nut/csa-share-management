@@ -1,4 +1,5 @@
 from solawi.app import db
+from test_factories import ShareFactory
 from test_helpers import DBTest
 
 
@@ -7,11 +8,8 @@ class TestController(DBTest):
         from solawi.models import Share
         from solawi.controller import merge
 
-        share_1 = Share(name="With bet")
-        share_2 = Share(name="Without bet")
-
-        share_1.save()
-        share_2.save()
+        share_1 = ShareFactory.create()
+        share_2 = ShareFactory.create()
 
         assert db.session.query(Share).count() == 2
 

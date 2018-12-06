@@ -11,7 +11,42 @@ from flask_login import UserMixin
 from solawi.app import db, app, bcrypt
 
 
-class Deposit(db.Model):
+class BaseModel():
+    def save(self):
+        try:
+            db.session.add(self)
+            db.session.commit()
+        except IntegrityError as e:
+            print("failing")
+            print(e)
+            db.session.rollback()
+            app.logger.debug(e)
+            return None
+        return self
+
+    def delete(self):
+        try:
+            db.session.delete(self)
+            db.session.commit()
+        except IntegrityError as e:
+            db.session.rollback()
+
+    @classmethod
+    def get(cls, id):
+        return db.session.query(cls).get(id)
+
+
+    @property
+    def json(self):
+        d = {}
+        columns = class_mapper(self.__class__).columns
+        for c in columns:
+            name = c.name
+            d[name] = getattr(self, name)
+        return d
+
+
+class Deposit(db.Model, BaseModel):
     id = db.Column(db.Integer, primary_key=True)  # pylint: disable=invalid-name
     amount = db.Column(db.Numeric)
     timestamp = db.Column(db.DateTime)
@@ -31,64 +66,19 @@ class Deposit(db.Model):
                                        name='_all_fields'),
                       )
 
-    @staticmethod
-    def get(id):
-        return db.session.query(Deposit).get(id)
-
-    @property
-    def json(self):
-        d = {}
-        columns = class_mapper(self.__class__).columns
-        for c in columns:
-            name = c.name
-            d[name] = getattr(self, name)
-        return d
-
-    def save(self):
-        try:
-            db.session.add(self)
-            db.session.commit()
-        except IntegrityError:
-            db.session.rollback()
-            app.logger.debug("Skipping existing Deposit for %s", self)
-
     def __repr__(self):
         return '<Deposit %i %r %s>' % (self.amount, self.timestamp, self.person.name)
 
 
-class Bet(db.Model):
+class Bet(db.Model, BaseModel):
     id = db.Column(db.Integer, primary_key=True)  # pylint: disable=invalid-name
     value = db.Column(db.Numeric)
     start_date = db.Column(db.DateTime, default=datetime.date(2017, 5, 1))
-    end_date = db.Column(db.DateTime, default=datetime.date(2017, 12, 31))
+    end_date = db.Column(db.DateTime)
     share_id = db.Column(db.Integer, db.ForeignKey('share.id'))
 
-    @staticmethod
-    def get(id):
-        return db.session.query(Bet).get(id)
 
-    def delete(self):
-        try:
-            db.session.delete(self)
-            db.session.commit()
-        except IntegrityError as e:
-            db.session.rollback()
-
-    def save(self):
-        try:
-            db.session.add(self)
-            db.session.commit()
-        except IntegrityError as e:
-            db.session.rollback()
-
-    def to_json(self):
-        return dict(start_date=self.start_date,
-                    end_date=self.end_date,
-                    value=self.value,
-                    id=self.id)
-
-
-class Share(db.Model):
+class Share(db.Model, BaseModel):
     id = db.Column(db.Integer, primary_key=True)  # pylint: disable=invalid-name
     name = db.Column(db.String)
     people = db.relationship('Person',
@@ -105,7 +95,7 @@ class Share(db.Model):
 
     @property
     def json(self):
-        bets = [bet.to_json() for bet in self.bets]
+        bets = [bet.json for bet in self.bets]
         return {
             "id": self.id,
             "name": self.name,
@@ -119,17 +109,6 @@ class Share(db.Model):
     def delete(self):
         db.session.delete(self)
         db.session.commit()
-
-    def save(self):
-        try:
-            db.session.add(self)
-            db.session.commit()
-        except IntegrityError as e:
-            db.session.rollback()
-
-    @staticmethod
-    def get(share_id):
-        return db.session.query(Share).get(share_id)
 
     @staticmethod
     def get_deposits(share_id):
@@ -158,7 +137,7 @@ class Share(db.Model):
         res = db.session.query(Bet) \
             .filter(Bet.share_id == share_id) \
             .all()
-        return [bet.to_json() for bet in res]
+        return [bet.json for bet in res]
 
     @property
     def deposits(self):
@@ -196,55 +175,20 @@ class Share(db.Model):
         return db.session.query(func.expected_today(self.id)).one_or_none()[0] or 0
 
 
-class Station(db.Model):
+class Station(db.Model, BaseModel):
     id = db.Column(db.Integer, primary_key=True)  # pylint: disable=invalid-name
     name = db.Column(db.String(120), unique=True)
     shares = db.relationship('Share', backref='station', lazy='dynamic')
-
-    @property
-    def json(self):
-        return {"name": self.name,
-                "id": self.id}
-
-    def save(self):
-        try:
-            db.session.add(self)
-            db.session.commit()
-        except IntegrityError:
-            db.session.rollback()
 
     @staticmethod
     def get_by_name(name):
         return db.session.query(Station).filter_by(name=name).first()
 
 
-class Person(db.Model):
+class Person(db.Model, BaseModel):
     id = db.Column(db.Integer, primary_key=True)  # pylint: disable=invalid-name
     name = db.Column(db.String(120), unique=True)
     share_id = db.Column(db.Integer, db.ForeignKey('share.id'))
-
-    def __init__(self, name):
-        self.name = name
-
-    def save(self):
-        try:
-            db.session.add(self)
-            db.session.commit()
-        except IntegrityError:
-            db.session.rollback()
-
-    @staticmethod
-    def get(person_id):
-        return db.session.query(Person).get(person_id)
-
-    @property
-    def json(self):
-        d = {}
-        columns = class_mapper(self.__class__).columns
-        for c in columns:
-            name = c.name
-            d[name] = getattr(self, name)
-        return d
 
     @property
     def deposits(self):
@@ -261,7 +205,7 @@ class Person(db.Model):
             exisiting = Person.query.filter_by(name=name).one()
             return exisiting
         except NoResultFound:
-            new_person = Person(name)
+            new_person = Person(name=name)
             db.session.add(new_person)
             db.session.commit()
             return new_person

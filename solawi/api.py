@@ -121,7 +121,7 @@ def bet_details(share_id):
             setattr(bet, field, json.get(field))
     bet.save()
 
-    return jsonify(bet=bet.to_json())
+    return jsonify(bet=bet.json)
 
 
 @api.route("/shares/<int:share_id>/bets/<int:bet_id>", methods=["DELETE"])
