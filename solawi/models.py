@@ -1,6 +1,7 @@
 """ the models """
 import datetime
 
+from dateutil.relativedelta import relativedelta
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import class_mapper
 from sqlalchemy.orm.exc import NoResultFound
@@ -35,7 +36,6 @@ class BaseModel():
     def get(cls, id):
         return db.session.query(cls).get(id)
 
-
     @property
     def json(self):
         d = {}
@@ -44,6 +44,14 @@ class BaseModel():
             name = c.name
             d[name] = getattr(self, name)
         return d
+
+
+class Member(db.Model, BaseModel):
+    id = db.Column(db.Integer, primary_key=True)
+    phone = db.Column(db.String)
+    name = db.Column(db.String)
+    email = db.Column(db.String)
+    share_id = db.Column(db.Integer, db.ForeignKey('share.id'))
 
 
 class Deposit(db.Model, BaseModel):
@@ -56,8 +64,7 @@ class Deposit(db.Model, BaseModel):
     added_by = db.Column(db.Integer, db.ForeignKey('user.id'))
 
     person_id = db.Column(db.Integer, db.ForeignKey('person.id'))
-    person = db.relationship('Person',
-                             backref=db.backref('deposit', lazy='dynamic'))
+
 
     __table_args__ = (UniqueConstraint('timestamp',
                                        'amount',
@@ -77,21 +84,29 @@ class Bet(db.Model, BaseModel):
     end_date = db.Column(db.DateTime)
     share_id = db.Column(db.Integer, db.ForeignKey('share.id'))
 
+    @property
+    def expected_today(self):
+        end_date = (self.end_date - relativedelta(months=1)) if self.end_date else datetime.date.today()
+        start_date = self.start_date + relativedelta(months=-2, days=27)
+        delta = relativedelta(end_date, start_date)
+        months = delta.months + delta.years * 12
+        return months * (self.value or 0)
+
 
 class Share(db.Model, BaseModel):
     id = db.Column(db.Integer, primary_key=True)  # pylint: disable=invalid-name
-    name = db.Column(db.String)
     people = db.relationship('Person',
                              backref="share",
-                             cascade="all, delete-orphan",
-                             lazy='dynamic')
+                             cascade="all, delete-orphan")
     bets = db.relationship('Bet',
                            backref="share",
                            cascade="all, delete-orphan")
+    members = db.relationship('Member',
+                              backref="share",
+                              cascade="all, delete-orphan")
     station_id = db.Column(db.Integer, db.ForeignKey('station.id'))
     note = db.Column(db.Text)
     archived = db.Column(db.Boolean, default=False)
-    email = db.Column(db.String)
 
     @property
     def json(self):
@@ -103,12 +118,11 @@ class Share(db.Model, BaseModel):
             "bets": bets,
             "station_id": self.station_id,
             "note": self.note,
-            "email": self.email
         }
 
-    def delete(self):
-        db.session.delete(self)
-        db.session.commit()
+    @property
+    def name(self):
+        return " & ".join([member.name for member in self.members])
 
     @staticmethod
     def get_deposits(share_id):
@@ -172,7 +186,7 @@ class Share(db.Model, BaseModel):
 
     @property
     def expected_today(self):
-        return db.session.query(func.expected_today(self.id)).one_or_none()[0] or 0
+        return sum([bet.expected_today for bet in self.bets])
 
 
 class Station(db.Model, BaseModel):
@@ -189,11 +203,8 @@ class Person(db.Model, BaseModel):
     id = db.Column(db.Integer, primary_key=True)  # pylint: disable=invalid-name
     name = db.Column(db.String(120), unique=True)
     share_id = db.Column(db.Integer, db.ForeignKey('share.id'))
-
-    @property
-    def deposits(self):
-        deposits = Deposit.query.filter_by(person=self).all()
-        return deposits
+    deposits = db.relationship('Deposit',
+                               backref='person')
 
     def __repr__(self):
         string = '<Person %s (id %i)>' % (self.name, self.id)
