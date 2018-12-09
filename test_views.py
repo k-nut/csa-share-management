@@ -1,7 +1,7 @@
 from flask import Response
 
 from solawi.app import db
-from test_factories import ShareFactory, BetFactory, MemberFactory
+from test_factories import ShareFactory, BetFactory, MemberFactory, StationFactory
 from test_helpers import DBTest, AuthorizedTest
 
 
@@ -59,6 +59,55 @@ class AuthorizedViewsTests(AuthorizedTest):
 
         self.assertEqual(response.status_code, 200)
         self.assertEquals(response.json, {"emails": expected})
+
+    def test_members(self):
+        member1 = MemberFactory.create(email="peter@example.org",
+                                       name="Peter Farmer",
+                                       phone="001234")
+        member2 = MemberFactory.create(email="paula@example.org",
+                                       name="Paula Farmer",
+                                       phone="001234")
+        member3 = MemberFactory.create(email="jane@example.org",
+                                       name="Jane Doe",
+                                       phone="0055689")
+
+        station1 = StationFactory.create(name="Station 1")
+        station2 = StationFactory.create(name="Station 2")
+
+        share1 = ShareFactory.create(members=[member1, member2], station=station1)
+        share2 = ShareFactory.create(members=[member3], station=station2)
+
+        expected = [
+            {
+                "email": "peter@example.org",
+                "id": member1.id,
+                "name": "Peter Farmer",
+                "phone": "001234",
+                "share_id": share1.id,
+                "station_name": "Station 1"
+            },
+            {
+                "email": "paula@example.org",
+                "id": member2.id,
+                "name": "Paula Farmer",
+                "phone": "001234",
+                "share_id": share1.id,
+                "station_name": "Station 1"
+            },
+            {
+                "email": "jane@example.org",
+                "id": member3.id,
+                "name": "Jane Doe",
+                "phone": "0055689",
+                "share_id": share2.id,
+                "station_name": "Station 2"
+            }
+        ]
+
+        response: Response = self.app.get(f"/api/v1/members")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json, {"members": expected})
 
 
 class UnAuthorizedViewsTests(DBTest):

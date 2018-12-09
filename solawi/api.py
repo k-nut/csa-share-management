@@ -9,7 +9,7 @@ from sqlalchemy.orm import joinedload
 
 from solawi import models
 from solawi.controller import merge, import_deposits
-from solawi.models import Share, Deposit, Person, User, Bet
+from solawi.models import Share, Deposit, Person, User, Bet, Member
 
 from solawi.app import app, db
 
@@ -44,11 +44,26 @@ def shares_list():
     shares = [share.json for share in shares]
     return jsonify(shares=shares)
 
+
 @api.route("/shares/<int:share_id>/emails")
 @login_required
 def share_email_list(share_id):
     share = Share.get(share_id)
     return jsonify(emails=[member.email for member in share.members])
+
+
+@api.route("/members")
+@login_required
+def member_list():
+    members = db.session.query(Member)\
+        .options(joinedload(Member.share))\
+        .all()
+    result = []
+    for member in members:
+        json = member.json
+        json['station_name'] = member.share.station.name if (member.share and member.share.station) else None
+        result.append(json)
+    return jsonify(members=result)
 
 
 @api.route("/shares/payment_status", methods=["GET"])
