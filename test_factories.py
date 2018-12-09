@@ -50,7 +50,7 @@ class MemberFactory(factory.alchemy.SQLAlchemyModelFactory):
         sqlalchemy_session = db.session   # the SQLAlchemy session object
         sqlalchemy_session_persistence = 'commit'
 
-    name = factory.Faker('full_name')
+    name = factory.Faker('name')
     phone = factory.Faker('phone_number')
     email = factory.Faker('safe_email')
     share = factory.SubFactory(ShareFactory)

@@ -44,6 +44,12 @@ def shares_list():
     shares = [share.json for share in shares]
     return jsonify(shares=shares)
 
+@api.route("/shares/<int:share_id>/emails")
+@login_required
+def share_email_list(share_id):
+    share = Share.get(share_id)
+    return jsonify(emails=[member.email for member in share.members])
+
 
 @api.route("/shares/payment_status", methods=["GET"])
 @login_required

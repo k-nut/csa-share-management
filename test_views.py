@@ -1,5 +1,7 @@
+from flask import Response
+
 from solawi.app import db
-from test_factories import ShareFactory, BetFactory
+from test_factories import ShareFactory, BetFactory, MemberFactory
 from test_helpers import DBTest, AuthorizedTest
 
 
@@ -39,6 +41,24 @@ class AuthorizedViewsTests(AuthorizedTest):
         self.assertEqual(response.status_code, 201)
         self.assertEqual(db.session.query(Share).count(), 1)
         self.assertEqual(response.get_json()["share"]["note"], "my note")
+
+    def test_share_emails_empty(self):
+        share = ShareFactory.create()
+
+        response: Response = self.app.get(f"/api/v1/shares/{share.id}/emails")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEquals(response.json, {"emails": []})
+
+    def test_share_emails(self):
+        member = MemberFactory.create(email="test@example.org")
+        share = ShareFactory.create(members=[member])
+
+        response: Response = self.app.get(f"/api/v1/shares/{share.id}/emails")
+        expected = ["test@example.org"]
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEquals(response.json, {"emails": expected})
 
 
 class UnAuthorizedViewsTests(DBTest):
