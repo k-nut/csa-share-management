@@ -1,3 +1,5 @@
+from datetime import date
+
 from flask import Response
 
 from solawi.app import db
@@ -77,6 +79,9 @@ class AuthorizedViewsTests(AuthorizedTest):
         share1 = ShareFactory.create(members=[member1, member2], station=station1)
         share2 = ShareFactory.create(members=[member3], station=station2)
 
+        BetFactory.create(share=share1)
+        BetFactory.create(share=share2)
+
         expected = [
             {
                 "email": "peter@example.org",
@@ -107,7 +112,26 @@ class AuthorizedViewsTests(AuthorizedTest):
         response: Response = self.app.get(f"/api/v1/members")
 
         self.assertEqual(response.status_code, 200)
+        self.maxDiff = None
         self.assertEqual(response.json, {"members": expected})
+
+    def test_members_expired(self):
+        member1 = MemberFactory.create()
+        member2 = MemberFactory.create()
+
+        station1 = StationFactory.create()
+        station2 = StationFactory.create()
+
+        valid_bet = BetFactory.create()
+        expired_bet = BetFactory.create(end_date=date(2016, 1, 1))
+
+        ShareFactory.create(members=[member1], station=station1, bets=[expired_bet])
+        ShareFactory.create(members=[member2], station=station2, bets=[valid_bet])
+
+        response: Response = self.app.get(f"/api/v1/members")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.json["members"]), 1)
 
 
 class UnAuthorizedViewsTests(DBTest):

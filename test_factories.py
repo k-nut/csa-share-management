@@ -44,6 +44,7 @@ class PersonFactory(factory.alchemy.SQLAlchemyModelFactory):
     name = factory.Faker('full_name')
     share = factory.SubFactory(ShareFactory)
 
+
 class MemberFactory(factory.alchemy.SQLAlchemyModelFactory):
     class Meta:
         model = Member

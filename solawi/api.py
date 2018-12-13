@@ -56,10 +56,12 @@ def share_email_list(share_id):
 @login_required
 def member_list():
     members = db.session.query(Member)\
-        .options(joinedload(Member.share))\
+        .options(joinedload(Member.share)) \
         .all()
     result = []
-    for member in members:
+    active_members = [member for member in members if member.share.currently_active]
+
+    for member in active_members:
         json = member.json
         json['station_name'] = member.share.station.name if (member.share and member.share.station) else None
         result.append(json)

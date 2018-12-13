@@ -85,6 +85,10 @@ class Bet(db.Model, BaseModel):
     share_id = db.Column(db.Integer, db.ForeignKey('share.id'))
 
     @property
+    def currently_active(self):
+        return (not self.end_date) or (self.end_date.date() > datetime.date.today())
+
+    @property
     def expected_today(self):
         end_date = (self.end_date - relativedelta(months=1)) if self.end_date else datetime.date.today()
         start_date = self.start_date + relativedelta(months=-2, days=27)
@@ -187,6 +191,11 @@ class Share(db.Model, BaseModel):
     @property
     def expected_today(self):
         return sum([bet.expected_today for bet in self.bets])
+
+    @property
+    def currently_active(self):
+        return any([bet.currently_active for bet in self.bets])
+
 
 
 class Station(db.Model, BaseModel):
