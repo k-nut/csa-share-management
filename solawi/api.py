@@ -52,16 +52,18 @@ def share_email_list(share_id):
     return jsonify(emails=[member.email for member in share.members])
 
 
-@api.route("/members")
+@api.route("/members", methods=["GET"])
 @login_required
 def member_list():
     members = db.session.query(Member)\
         .options(joinedload(Member.share)) \
         .all()
     result = []
-    active_members = [member for member in members if member.share.currently_active]
 
-    for member in active_members:
+    if request.args.get('active'):
+        members = [member for member in members if member.share.currently_active]
+
+    for member in members:
         json = member.json
         json['station_name'] = member.share.station.name if (member.share and member.share.station) else None
         result.append(json)

@@ -79,9 +79,6 @@ class AuthorizedViewsTests(AuthorizedTest):
         share1 = ShareFactory.create(members=[member1, member2], station=station1)
         share2 = ShareFactory.create(members=[member3], station=station2)
 
-        BetFactory.create(share=share1)
-        BetFactory.create(share=share2)
-
         expected = [
             {
                 "email": "peter@example.org",
@@ -128,7 +125,7 @@ class AuthorizedViewsTests(AuthorizedTest):
         ShareFactory.create(members=[member1], station=station1, bets=[expired_bet])
         ShareFactory.create(members=[member2], station=station2, bets=[valid_bet])
 
-        response: Response = self.app.get(f"/api/v1/members")
+        response: Response = self.app.get(f"/api/v1/members?active=true")
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.json["members"]), 1)
