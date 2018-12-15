@@ -70,6 +70,28 @@ def member_list():
     return jsonify(members=result)
 
 
+@api.route("/members", methods=["POST"])
+@login_required
+def member_create():
+    json = request.get_json()
+    member = Member(name=json.get("name"),
+                    share_id=json.get("share_id"))
+    member.save()
+    return jsonify(member=member.json)
+
+
+@api.route("/members/<int:member_id>", methods=["PUT", "PATCH"])
+@login_required
+def member_edit(member_id):
+    member = Member.get(member_id)
+    json = request.get_json()
+    for field in ["name", "share_id", "email", "phone"]:
+        if field in json:
+            setattr(member, field, json.get(field))
+    member.save()
+    return jsonify(member=member.json)
+
+
 @api.route("/shares/payment_status", methods=["GET"])
 @login_required
 def get_payment_list():
