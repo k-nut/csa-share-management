@@ -1,8 +1,7 @@
 import csv
 from datetime import datetime
 
-from solawi import models
-from solawi.models import Share
+from solawi.models import Share, Member, Person, Deposit
 
 
 def merge(first_share_id, second_share_id):
@@ -18,8 +17,12 @@ def merge(first_share_id, second_share_id):
     else:
         merge_into = second_share
         take_from = first_share
+
     for person in take_from.people:
         merge_into.people.append(person)
+
+    for member in take_from.members:
+        merge_into.members.append(member)
 
     merge_into.save()
     take_from.delete()
@@ -40,15 +43,18 @@ def import_deposits(data):
         title = "".join([line[key] for key in keys])
         name = line["Auftraggeber/Empf\xe4nger"]
         if value > 0:
-            person = models.Person.get_or_create(name)
-            deposit = models.Deposit(amount=value,
+            person = Person.get_or_create(name)
+            deposit = Deposit(amount=value,
                                      timestamp=date,
                                      person=person,
                                      title=title)
             deposit.save()
 
             if person.share_id is None:
-                share = Share(name=person.name)
+                member = Member(name=name)
+                member.save()
+
+                share = Share()
                 share.people.append(person)
-                share.bet_value = 0
+                share.members.append(member)
                 share.save()

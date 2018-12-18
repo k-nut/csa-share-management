@@ -2,7 +2,7 @@ from datetime import datetime, date
 from decimal import Decimal
 
 from solawi.models import Bet, Deposit, Share, Station
-from test_factories import ShareFactory, BetFactory, PersonFactory
+from test_factories import ShareFactory, BetFactory, PersonFactory, MemberFactory
 from test_helpers import DBTest
 
 
@@ -37,11 +37,19 @@ class BetTest(DBTest):
                     }
         assert bet.json == expected
 
+    def test_expected_today(self):
+        bet = BetFactory.create(start_date=date(2017, 1, 1),
+                                end_date=date(2017, 3, 31),
+                                value=100,
+                                )
+        assert bet.expected_today == 300
+
 
 class ShareTest(DBTest):
     def test_jsonify(self):
-        share = ShareFactory(name="John Doe & Sabrina Doe",
-                             email="john@example.com")
+        share = ShareFactory()
+        MemberFactory(name="John Doe", share=share)
+        MemberFactory(name="Sabrina Doe", share=share)
 
         expected = {
             "id": share.id,
@@ -50,10 +58,10 @@ class ShareTest(DBTest):
             "bets": [],
             "station_id": share.station.id,
             "note": None,
-            "email": "john@example.com"
         }
 
         assert share.json == expected
+
 
 class PersonTest(DBTest):
     def test_jsonify(self):
@@ -68,6 +76,24 @@ class PersonTest(DBTest):
 
         assert person.json == expected
 
+
+class MemberTest(DBTest):
+    def test_jsonify(self):
+        share = ShareFactory.create()
+        member = MemberFactory(name="Mister Member",
+                               email="paul.member@example.com",
+                               phone="+49012345",
+                               share=share)
+
+        expected = {
+            "id": member.id,
+            "name": "Mister Member",
+            "email": "paul.member@example.com",
+            "phone": "+49012345",
+            "share_id": share.id
+        }
+
+        assert member.json == expected
 
 
 class ModelTest(DBTest):
