@@ -65,7 +65,7 @@ def member_list():
 
     for member in members:
         json = member.json
-        json['station_name'] = member.share.station.name if (member.share and member.share.station) else None
+        json['station_name'] = member.share.station_name
         result.append(json)
     return jsonify(members=result)
 

@@ -170,15 +170,8 @@ class Share(db.Model, BaseModel):
                 if not (deposit.ignore or deposit.is_security)]
 
     @property
-    def start_month(self):
-        return self.start_date.month
-
-    @property
     def station_name(self):
-        if self.station:
-            return self.station.name
-        else:
-            return ""
+        return self.station.name if self.station else None
 
     @property
     def total_deposits(self):
