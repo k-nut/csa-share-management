@@ -156,6 +156,16 @@ class AuthorizedViewsTests(AuthorizedTest):
         self.assertEqual(updated_member.name, "Paul Wild")
         self.assertEqual(response.json["member"]["name"], "Paul Wild")
 
+    def test_delete_member(self):
+        member = MemberFactory.create(name="Paul Wild")
+
+        self.assertEqual(Member.query.count(), 1)
+
+        response: Response = self.app.delete(f"/api/v1/members/{member.id}")
+
+        self.assertEqual(response.status_code, 204)
+        self.assertEqual(Member.query.count(), 0)
+
 
 class UnAuthorizedViewsTests(DBTest):
     def test_delete_bet_required_auth(self):

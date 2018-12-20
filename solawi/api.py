@@ -1,6 +1,8 @@
 import csv
 
 import datetime
+from http import HTTPStatus
+
 import flask_login
 from decimal import Decimal
 from flask import request, jsonify, Blueprint
@@ -90,6 +92,14 @@ def member_edit(member_id):
             setattr(member, field, json.get(field))
     member.save()
     return jsonify(member=member.json)
+
+
+@api.route("/members/<int:member_id>", methods=["DELETE"])
+@login_required
+def member_delete(member_id):
+    member = Member.get(member_id)
+    member.delete()
+    return "", HTTPStatus.NO_CONTENT
 
 
 @api.route("/shares/payment_status", methods=["GET"])
