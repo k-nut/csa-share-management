@@ -78,6 +78,8 @@ def member_create():
     json = request.get_json()
     member = Member(name=json.get("name"),
                     share_id=json.get("share_id"))
+                    email=json.get("email"),
+                    phone=json.get("phone"),
     member.save()
     return jsonify(member=member.json)
 
