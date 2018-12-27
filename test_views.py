@@ -144,6 +144,17 @@ class AuthorizedViewsTests(AuthorizedTest):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(updated_share.members), 2)
 
+    def test_create_member_without_share(self):
+        self.assertEqual(Member.query.count(), 0)
+        self.assertEqual(Share.query.count(), 0)
+
+        new_member_json = {"name": "Paul Wild", "email": "paul@example.org", "phone": "0123"}
+        response: Response = self.app.post(f"/api/v1/members", json=new_member_json)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(Member.query.count(), 1)
+        self.assertEqual(Share.query.count(), 1)
+
     def test_change_member(self):
         member = MemberFactory.create(name="Paul Wild / Paula Wilder")
 

@@ -76,10 +76,15 @@ def member_list():
 @login_required
 def member_create():
     json = request.get_json()
+    share_id = json.get("share_id")
+    if not share_id:
+        share = Share()
+        share.save()
+        share_id = share.id
     member = Member(name=json.get("name"),
-                    share_id=json.get("share_id"))
                     email=json.get("email"),
                     phone=json.get("phone"),
+                    share_id=share_id)
     member.save()
     return jsonify(member=member.json)
 
