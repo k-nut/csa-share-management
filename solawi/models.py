@@ -126,7 +126,7 @@ class Share(db.Model, BaseModel):
 
     @property
     def name(self):
-        return " & ".join([member.name for member in self.members])
+        return " & ".join(sorted([member.name for member in self.members]))
 
     @staticmethod
     def get_deposits(share_id):

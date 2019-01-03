@@ -62,6 +62,18 @@ class ShareTest(DBTest):
 
         assert share.json == expected
 
+    def test_name(self):
+        share = ShareFactory()
+        MemberFactory(name="Bob", share=share)
+        MemberFactory(name="Anna", share=share)
+
+        assert share.name == "Anna & Bob"
+
+    def test_name_no_members(self):
+        share = ShareFactory()
+
+        assert share.name == ""
+
 
 class PersonTest(DBTest):
     def test_jsonify(self):
