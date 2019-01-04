@@ -14,6 +14,7 @@ def merge(first_share_id, second_share_id):
     first_share.people += list(second_share.people)
     first_share.members += list(second_share.members)
     first_share.bets += list(second_share.bets)
+    first_share.station_id = first_share.station_id or second_share.station_id
 
     first_share.save()
     second_share.delete()
