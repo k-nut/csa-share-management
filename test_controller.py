@@ -1,4 +1,3 @@
-from solawi.app import db
 from test_factories import ShareFactory, MemberFactory, BetFactory, StationFactory
 from test_helpers import DBTest
 
@@ -89,3 +88,34 @@ class TestController(DBTest):
 
         assert Share.query.one().station == station1
 
+    def test_merge_merges_note_1(self):
+        share1 = ShareFactory.create(note="Note 1")
+        share2 = ShareFactory.create(note="Note 2")
+
+        merge(share1.id, share2.id)
+
+        assert Share.query.one().note == "Note 1 \n --- \n Note 2"
+
+    def test_merge_merges_note_2(self):
+        share1 = ShareFactory.create()
+        share2 = ShareFactory.create(note="Note 2")
+
+        merge(share1.id, share2.id)
+
+        assert Share.query.one().note == "Note 2"
+
+    def test_merge_merges_note_3(self):
+        share1 = ShareFactory.create(note="Note 1")
+        share2 = ShareFactory.create()
+
+        merge(share1.id, share2.id)
+
+        assert Share.query.one().note == "Note 1"
+
+    def test_merge_merges_note_4(self):
+        share1 = ShareFactory.create()
+        share2 = ShareFactory.create()
+
+        merge(share1.id, share2.id)
+
+        assert Share.query.one().note == ""

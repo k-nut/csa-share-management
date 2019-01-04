@@ -4,6 +4,10 @@ from datetime import datetime
 from solawi.models import Share, Member, Person, Deposit
 
 
+def without_nones(listlike):
+    return [element for element in listlike if element is not None]
+
+
 def merge(first_share_id, second_share_id):
     if not first_share_id or not second_share_id:
         return None
@@ -15,6 +19,7 @@ def merge(first_share_id, second_share_id):
     first_share.members += list(second_share.members)
     first_share.bets += list(second_share.bets)
     first_share.station_id = first_share.station_id or second_share.station_id
+    first_share.note = " \n --- \n ".join(without_nones([first_share.note, second_share.note]))
 
     first_share.save()
     second_share.delete()
