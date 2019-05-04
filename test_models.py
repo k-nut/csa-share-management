@@ -1,6 +1,7 @@
 from datetime import datetime, date
 from decimal import Decimal
 
+from unittest.mock import MagicMock, patch
 from solawi.models import Bet, Deposit, Share, Station
 from test_factories import ShareFactory, BetFactory, PersonFactory, MemberFactory
 from test_helpers import DBTest
@@ -208,6 +209,65 @@ class ModelTest(DBTest):
                   )
         bet.save()
         assert share.expected_today == 300
+
+    def test_expected_today_without_end_date(self):
+        import datetime
+        share = ShareFactory.create()
+        with patch('solawi.models.date') as mock_date:
+            mock_date.today.return_value = datetime.date(2017, 3, 31)
+            bet = Bet(start_date=datetime.date(2017, 1, 1),
+                      value=100,
+                      share_id=share.id
+                      )
+            bet.save()
+            assert share.expected_today == 300
+
+    def test_expected_today_without_end_date_mid_month(self):
+        import datetime
+        share = ShareFactory.create()
+        with patch('solawi.models.date') as mock_date:
+            mock_date.today.return_value = datetime.date(2017, 3, 15)
+            bet = Bet(start_date=datetime.date(2017, 1, 1),
+                      value=100,
+                      share_id=share.id
+                      )
+            bet.save()
+            assert share.expected_today == 200
+
+    def test_expected_today_half_month(self):
+        import datetime
+        share = ShareFactory.create()
+        bet = Bet(start_date=datetime.date(2017, 1, 15),
+                  end_date=datetime.date(2017, 3, 31),
+                  value=100,
+                  share_id=share.id
+                  )
+        bet.save()
+        assert share.expected_today == 250
+
+    def test_expected_today_half_month_mocked_today(self):
+        import datetime
+        share = ShareFactory.create()
+        with patch('solawi.models.date') as mock_date:
+            mock_date.today.return_value = datetime.date(2017, 1, 17)
+            bet = Bet(start_date=datetime.date(2017, 1, 15),
+                      value=100,
+                      share_id=share.id
+                      )
+            bet.save()
+            assert share.expected_today == 0
+
+    def test_expected_today_half_month_mocked_today_month_end(self):
+        import datetime
+        share = ShareFactory.create()
+        with patch('solawi.models.date') as mock_date:
+            mock_date.today.return_value = datetime.date(2017, 1, 31)
+            bet = Bet(start_date=datetime.date(2017, 1, 15),
+                      value=100,
+                      share_id=share.id
+                      )
+            bet.save()
+            assert share.expected_today == 50
 
     def test_expected_today_is_decimal(self):
         import datetime

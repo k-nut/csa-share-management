@@ -1,5 +1,7 @@
 """ the models """
 import datetime
+from datetime import date
+from decimal import Decimal
 
 from dateutil.relativedelta import relativedelta
 from sqlalchemy.ext.hybrid import hybrid_property
@@ -90,10 +92,22 @@ class Bet(db.Model, BaseModel):
 
     @property
     def expected_today(self):
-        end_date = (self.end_date - relativedelta(months=1)) if self.end_date else datetime.date.today()
-        start_date = self.start_date + relativedelta(months=-2, days=27)
-        delta = relativedelta(end_date, start_date)
+        NEW_PAYMENY_REQUIRED_DAY = 27
+        end_date = self.end_date or date.today()
+        delta = relativedelta(end_date, self.start_date)
         months = delta.months + delta.years * 12
+
+        if end_date.day >= NEW_PAYMENY_REQUIRED_DAY:
+            months += 1
+
+        if self.start_date.day >= 15:
+            # If the Bet was started at mid-month, subtract half
+            # a month from the expected amount
+            months -= Decimal('0.5')
+
+        if months < 0 :
+            months = 0
+
         return months * (self.value or 0)
 
 
