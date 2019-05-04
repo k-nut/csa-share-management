@@ -100,13 +100,15 @@ class Bet(db.Model, BaseModel):
         if end_date.day >= NEW_PAYMENY_REQUIRED_DAY:
             months += 1
 
+        if not self.end_date:
+            # if this bet is still active, we expect them to have payed
+            # for the following month already
+            months += 1
+
         if self.start_date.day >= 15:
             # If the Bet was started at mid-month, subtract half
             # a month from the expected amount
             months -= Decimal('0.5')
-
-        if months < 0 :
-            months = 0
 
         return months * (self.value or 0)
 
