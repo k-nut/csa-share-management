@@ -77,8 +77,13 @@ class AuthorizedViewsTests(AuthorizedTest):
         station1 = StationFactory.create(name="Station 1")
         station2 = StationFactory.create(name="Station 2")
 
+
         share1 = ShareFactory.create(members=[member1, member2], station=station1)
         share2 = ShareFactory.create(members=[member3], station=station2)
+
+        BetFactory.create(share=share1, start_date=date(2018, 1, 1), end_date=date(2018, 12, 1))
+        BetFactory.create(share=share1, start_date=date(2019, 1, 1))
+        BetFactory.create(share=share2, start_date=date(2019, 1, 15))
 
         expected = [
             {
@@ -87,7 +92,8 @@ class AuthorizedViewsTests(AuthorizedTest):
                 "name": "Peter Farmer",
                 "phone": "001234",
                 "share_id": share1.id,
-                "station_name": "Station 1"
+                "station_name": "Station 1",
+                "join_date": "2018-01-01T00:00:00"
             },
             {
                 "email": "paula@example.org",
@@ -95,7 +101,8 @@ class AuthorizedViewsTests(AuthorizedTest):
                 "name": "Paula Farmer",
                 "phone": "001234",
                 "share_id": share1.id,
-                "station_name": "Station 1"
+                "station_name": "Station 1",
+                "join_date": "2018-01-01T00:00:00"
             },
             {
                 "email": "jane@example.org",
@@ -103,7 +110,8 @@ class AuthorizedViewsTests(AuthorizedTest):
                 "name": "Jane Doe",
                 "phone": "0055689",
                 "share_id": share2.id,
-                "station_name": "Station 2"
+                "station_name": "Station 2",
+                "join_date": "2019-01-15T00:00:00"
             }
         ]
 

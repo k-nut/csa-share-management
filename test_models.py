@@ -74,6 +74,13 @@ class ShareTest(DBTest):
 
         assert share.name == ""
 
+    def test_join_date(self):
+        share = ShareFactory()
+        BetFactory(share=share, start_date=date(2019, 1, 1))
+        BetFactory(share=share, start_date=date(2018, 1, 1), end_date=date(2018, 12, 31))
+
+        assert share.join_date == datetime(2018, 1, 1)
+
 
 class PersonTest(DBTest):
     def test_jsonify(self):

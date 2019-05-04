@@ -128,6 +128,11 @@ class Share(db.Model, BaseModel):
     def name(self):
         return " & ".join(sorted([member.name for member in self.members]))
 
+    @property
+    def join_date(self):
+        start_dates = [bet.start_date for bet in self.bets]
+        return min(start_dates) if start_dates else None
+
     @staticmethod
     def get_deposits(share_id):
         res = db.session.query(Deposit, Person.name, Person.id, User.email) \
