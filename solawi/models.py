@@ -100,7 +100,7 @@ class Bet(db.Model, BaseModel):
         if end_date.day >= NEW_PAYMENY_REQUIRED_DAY:
             months += 1
 
-        if not self.end_date:
+        if datetime.datetime.now() > self.start_date and not self.end_date:
             # if this bet is still active, we expect them to have payed
             # for the following month already
             months += 1

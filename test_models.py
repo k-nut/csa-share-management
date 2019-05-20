@@ -222,6 +222,18 @@ class ModelTest(DBTest):
             bet.save()
             assert share.expected_today == 400
 
+    def test_expected_today_without_end_date_future(self):
+        import datetime
+        share = ShareFactory.create()
+        with patch('solawi.models.date') as mock_date:
+            mock_date.today.return_value = datetime.date(2019, 5, 20)
+            bet = Bet(start_date=datetime.date(2019, 6, 1),
+                      value=100,
+                      share_id=share.id
+                      )
+            bet.save()
+            assert share.expected_today == 0
+
     def test_expected_today_without_end_date_mid_month(self):
         import datetime
         share = ShareFactory.create()
