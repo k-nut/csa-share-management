@@ -281,6 +281,18 @@ class ModelTest(DBTest):
             bet.save()
             assert share.expected_today == 50
 
+    def test_expected_today_half_month_mocked_today_half_delta(self):
+        import datetime
+        share = ShareFactory.create()
+        with patch('solawi.models.date') as mock_date:
+            mock_date.today.return_value = datetime.date(2019, 7, 6)
+            bet = Bet(start_date=datetime.date(2019, 3, 15),
+                      value=100,
+                      share_id=share.id
+                      )
+            bet.save()
+            assert share.expected_today == 450
+
     def test_expected_today_half_month_mocked_today_month_end(self):
         import datetime
         share = ShareFactory.create()

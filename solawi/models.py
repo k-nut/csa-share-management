@@ -110,6 +110,12 @@ class Bet(db.Model, BaseModel):
             # a month from the expected amount
             months -= Decimal('0.5')
 
+            if delta.days > 16:
+                # If the Bet started at a half month and today is a new
+                # month (but no full month in the delta yet), we need to
+                # account for one more month.
+                months += 1
+
         return months * (self.value or 0)
 
 
