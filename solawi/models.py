@@ -9,7 +9,6 @@ from sqlalchemy.orm import class_mapper
 from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy import UniqueConstraint, func
-from flask_login import UserMixin
 
 from solawi.app import db, app, bcrypt
 
@@ -251,7 +250,7 @@ class Person(db.Model, BaseModel):
             return new_person
 
 
-class User(UserMixin, db.Model):
+class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String, unique=True, nullable=False)
     _password = db.Column(db.Binary(128), nullable=False)

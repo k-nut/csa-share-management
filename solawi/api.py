@@ -1,10 +1,9 @@
 import csv
 from http import HTTPStatus
 
-import flask_login
 from decimal import Decimal
 from flask import request, jsonify, Blueprint
-from flask_jwt_extended import create_access_token, jwt_required
+from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 from sqlalchemy.orm import joinedload
 
 from solawi import models
@@ -226,7 +225,9 @@ def post_deposit(deposit_id):
 @api.route("/deposits/", methods=["PUT"])
 @jwt_required
 def put_deposit():
-    deposit = Deposit(added_by=flask_login.current_user.id)
+    current_user_email = get_jwt_identity()
+    current_user = User.query.filter(User.email == current_user_email).one()
+    deposit = Deposit(added_by=current_user.id)
     json = request.get_json()
     json.pop("id", None)
     for field in json:
