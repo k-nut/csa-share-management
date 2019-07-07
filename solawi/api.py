@@ -1,12 +1,10 @@
 import csv
-
-import datetime
 from http import HTTPStatus
 
 import flask_login
 from decimal import Decimal
 from flask import request, jsonify, Blueprint
-from flask_login import login_user, logout_user, login_required
+from flask_jwt_extended import create_access_token, jwt_required
 from sqlalchemy.orm import joinedload
 
 from solawi import models
@@ -24,20 +22,14 @@ def api_login():
     password = request.json.get('password')
     user = models.User.authenticate_and_get(email, password)
     if user:
-        login_user(user)
-        return jsonify({"message": "login successful"})
+        access_token = create_access_token(identity=email)
+        return jsonify(access_token=access_token), 200
     else:
         return jsonify({"message": "login failed"}), 401
 
 
-@api.route("/logout")
-def api_logout():
-    logout_user()
-    return jsonify({"message": "logout successful"}), 200
-
-
 @api.route("/shares")
-@login_required
+@jwt_required
 def shares_list():
     shares = Share.query \
         .options(joinedload(Share.bets)) \
@@ -48,14 +40,14 @@ def shares_list():
 
 
 @api.route("/shares/<int:share_id>/emails")
-@login_required
+@jwt_required
 def share_email_list(share_id):
     share = Share.get(share_id)
     return jsonify(emails=[member.email for member in share.members])
 
 
 @api.route("/members", methods=["GET"])
-@login_required
+@jwt_required
 def member_list():
     members = db.session.query(Member)\
         .options(joinedload(Member.share)) \
@@ -74,7 +66,7 @@ def member_list():
 
 
 @api.route("/members", methods=["POST"])
-@login_required
+@jwt_required
 def member_create():
     json = request.get_json()
     share_id = json.get("share_id")
@@ -91,7 +83,7 @@ def member_create():
 
 
 @api.route("/members/<int:member_id>", methods=["PUT", "PATCH"])
-@login_required
+@jwt_required
 def member_edit(member_id):
     member = Member.get(member_id)
     json = request.get_json()
@@ -103,7 +95,7 @@ def member_edit(member_id):
 
 
 @api.route("/members/<int:member_id>", methods=["DELETE"])
-@login_required
+@jwt_required
 def member_delete(member_id):
     member = Member.get(member_id)
     member.delete()
@@ -111,7 +103,7 @@ def member_delete(member_id):
 
 
 @api.route("/shares/payment_status", methods=["GET"])
-@login_required
+@jwt_required
 def get_payment_list():
     shares = db.session.query(Share).options(joinedload(Share.members)) \
         .options(joinedload(Share.bets)) \
@@ -138,14 +130,14 @@ def get_payment_list():
 
 
 @api.route("/stations")
-@login_required
+@jwt_required
 def bets_list():
     stations = [station.json for station in models.Station.query.all()]
     return jsonify(stations=stations)
 
 
 @api.route("/shares/<int:share_id>", methods=["GET"])
-@login_required
+@jwt_required
 def shares_details(share_id):
     share = Share.get(share_id)
     dict_share = share.json
@@ -156,21 +148,21 @@ def shares_details(share_id):
 
 
 @api.route("/shares/<int:share_id>/deposits", methods=["GET"])
-@login_required
+@jwt_required
 def share_deposits(share_id):
     deposits = Share.get_deposits(share_id)
     return jsonify(deposits=deposits)
 
 
 @api.route("/shares/<int:share_id>/bets", methods=["GET"])
-@login_required
+@jwt_required
 def share_bets(share_id):
     bets = Share.get_bets(share_id)
     return jsonify(bets=bets)
 
 
 @api.route("/shares/<int:share_id>/bets", methods=["POST", "PUT"])
-@login_required
+@jwt_required
 def bet_details(share_id):
     json = request.get_json()
     if json.get("id"):
@@ -188,7 +180,7 @@ def bet_details(share_id):
 
 
 @api.route("/shares/<int:share_id>/bets/<int:bet_id>", methods=["DELETE"])
-@login_required
+@jwt_required
 def delete_bet(share_id, bet_id):
     bet = Bet.query.get_or_404(bet_id)
     bet.delete()
@@ -196,7 +188,7 @@ def delete_bet(share_id, bet_id):
 
 
 @api.route("/shares/<int:share_id>", methods=["POST"])
-@login_required
+@jwt_required
 def post_shares_details(share_id):
     share = Share.get(share_id)
     json = request.get_json()
@@ -209,7 +201,7 @@ def post_shares_details(share_id):
 
 
 @api.route("/shares", methods=["POST"])
-@login_required
+@jwt_required
 def add_share():
     json = request.get_json()
     share = Share()
@@ -220,7 +212,7 @@ def add_share():
 
 
 @api.route("/deposits/<int:deposit_id>", methods=["POST"])
-@login_required
+@jwt_required
 def post_deposit(deposit_id):
     deposit = Deposit.get(deposit_id)
     json = request.get_json()
@@ -232,7 +224,7 @@ def post_deposit(deposit_id):
 
 
 @api.route("/deposits/", methods=["PUT"])
-@login_required
+@jwt_required
 def put_deposit():
     deposit = Deposit(added_by=flask_login.current_user.id)
     json = request.get_json()
@@ -244,7 +236,7 @@ def put_deposit():
 
 
 @api.route("/shares/merge", methods=["POST"])
-@login_required
+@jwt_required
 def merge_shares():
     json = request.get_json()
     share1 = json.get("share1")
@@ -261,7 +253,7 @@ def allowed_file(filename):
 
 
 @api.route("/deposits/upload", methods=["POST"])
-@login_required
+@jwt_required
 def upload_file():
     sent_file = request.files['file']
     if sent_file and allowed_file(sent_file.filename):
@@ -272,13 +264,13 @@ def upload_file():
 
 
 @api.route("/person/<int:person_id>", methods=["GET"])
-@login_required
+@jwt_required
 def get_person(person_id):
     return jsonify(Person.get(person_id).json)
 
 
 @api.route("/users", methods=["GET"])
-@login_required
+@jwt_required
 def user_list():
     users = User.get_all_emails()
     return jsonify(users=users)

@@ -1,9 +1,13 @@
 import unittest
 import os
 
+from flask.testing import FlaskClient
+from flask_jwt_extended import create_access_token
 from flask_migrate import upgrade
+from werkzeug.datastructures import Headers
 
 from solawi.app import app, db
+from test_factories import UserFactory
 
 
 class DBTest(unittest.TestCase):
@@ -20,8 +24,6 @@ class DBTest(unittest.TestCase):
         db.engine.execute("DROP TABLE alembic_version")
 
     def setUp(self):
-        app.config["LOGIN_DISABLED"] = False
-        app.login_manager.init_app(app)
         self.app = app.test_client()
 
     def tearDown(self):
@@ -33,6 +35,7 @@ class DBTest(unittest.TestCase):
 
 class AuthorizedTest(DBTest):
     def setUp(self):
-        app.config["LOGIN_DISABLED"] = True
-        app.login_manager.init_app(app)
         self.app = app.test_client()
+        user = UserFactory.create()
+        with app.app_context():
+            self.app.environ_base['HTTP_AUTHORIZATION'] = f'Bearer {create_access_token(identity=user.email)}'

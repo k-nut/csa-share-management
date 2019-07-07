@@ -2,7 +2,7 @@ import datetime
 import factory
 
 from solawi.app import db
-from solawi.models import Station, Share, Bet, Person, Member
+from solawi.models import Station, Share, Bet, Person, Member, User
 
 
 class StationFactory(factory.alchemy.SQLAlchemyModelFactory):
@@ -55,3 +55,12 @@ class MemberFactory(factory.alchemy.SQLAlchemyModelFactory):
     phone = factory.Faker('phone_number')
     email = factory.Faker('safe_email')
     share = factory.SubFactory(ShareFactory)
+
+class UserFactory(factory.alchemy.SQLAlchemyModelFactory):
+    class Meta:
+        model = User
+        sqlalchemy_session = db.session   # the SQLAlchemy session object
+        sqlalchemy_session_persistence = 'commit'
+
+    email = factory.Faker('safe_email')
+    password = factory.Faker('password')
