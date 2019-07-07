@@ -48,6 +48,5 @@ bcrypt = Bcrypt(app)
 migrate = Migrate(app, db)
 
 
-import solawi.views
 import solawi.api
 import solawi.commands
