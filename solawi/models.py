@@ -147,7 +147,7 @@ class Share(db.Model, BaseModel):
 
     @property
     def name(self):
-        return " & ".join(sorted([member.name for member in self.members]))
+        return " & ".join(sorted([member.name for member in self.members if member.name]))
 
     @property
     def join_date(self):
