@@ -2,7 +2,7 @@ import datetime
 import factory
 
 from solawi.app import db
-from solawi.models import Station, Share, Bet, Person, Member, User
+from solawi.models import Station, Share, Bet, Person, Member, User, Deposit
 
 
 class StationFactory(factory.alchemy.SQLAlchemyModelFactory):
@@ -21,6 +21,17 @@ class ShareFactory(factory.alchemy.SQLAlchemyModelFactory):
         sqlalchemy_session_persistence = 'commit'
 
     station = factory.SubFactory(StationFactory)
+
+
+class DepositFactory(factory.alchemy.SQLAlchemyModelFactory):
+    class Meta:
+        model = Deposit
+        sqlalchemy_session = db.session   # the SQLAlchemy session object
+        sqlalchemy_session_persistence = 'commit'
+
+    amount = 100
+    title = "My Deposit Title"
+
 
 
 class BetFactory(factory.alchemy.SQLAlchemyModelFactory):

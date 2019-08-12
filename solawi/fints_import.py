@@ -2,6 +2,7 @@ import logging
 import os
 from decimal import Decimal
 
+from dateutil.relativedelta import relativedelta
 from fints.client import FinTS3PinTanClient
 
 from solawi.models import Person, Deposit, Member, Share
@@ -28,7 +29,12 @@ def import_fin_ts():
 
     account = next(account for account in accounts if account.iban==os.environ.get('CSA_ACCOUNT_IBAN'))
 
-    for transaction in f.get_transactions(account):
+    last_data = Deposit.latest_import()
+    import_start = last_data - relativedelta(days=2)
+
+    print(f"Latest import is from {last_data}, importing from {import_start}")
+
+    for transaction in f.get_transactions(account, import_start):
         title = transaction.data.get('purpose')
         name = transaction.data.get('applicant_name')
         date = transaction.data.get('date')

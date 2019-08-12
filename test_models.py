@@ -3,7 +3,7 @@ from decimal import Decimal
 
 from unittest.mock import MagicMock, patch
 from solawi.models import Bet, Deposit, Share, Station
-from test_factories import ShareFactory, BetFactory, PersonFactory, MemberFactory
+from test_factories import ShareFactory, BetFactory, PersonFactory, MemberFactory, DepositFactory, UserFactory
 from test_helpers import DBTest
 
 
@@ -23,6 +23,19 @@ class DepositTest(DBTest):
                     'timestamp': datetime(2018, 1, 1, 12, 0),
                     'title': 'June Payment John Doe'}
         assert deposit.json == expected
+
+    def test_latest(self):
+        DepositFactory.create(timestamp=datetime(2018, 1, 1, 12, 0))
+        DepositFactory.create(timestamp=datetime(2019, 1, 1, 12, 0))
+
+        assert Deposit.latest_import() == datetime(2019, 1, 1, 12, 0)
+
+    def test_latest_with_manual(self):
+        user = UserFactory.create()
+        DepositFactory.create(timestamp=datetime(2018, 1, 1, 12, 0))
+        DepositFactory.create(timestamp=datetime(2019, 1, 1, 12, 0), added_by=user.id)
+
+        assert Deposit.latest_import() == datetime(2018, 1, 1, 12, 0)
 
 
 class BetTest(DBTest):

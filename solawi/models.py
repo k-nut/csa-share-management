@@ -77,6 +77,12 @@ class Deposit(db.Model, BaseModel):
     def __repr__(self):
         return '<Deposit %i %r %s>' % (self.amount, self.timestamp, self.person.name)
 
+    @classmethod
+    def latest_import(cls):
+        return db.session\
+            .query(func.max(Deposit.timestamp))\
+            .filter(Deposit.added_by.is_(None))\
+            .scalar()
 
 class Bet(db.Model, BaseModel):
     id = db.Column(db.Integer, primary_key=True)  # pylint: disable=invalid-name
