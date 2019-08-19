@@ -22,7 +22,7 @@ def import_fin_ts():
         os.environ.get('CSA_ACCOUNT_USERNAME'),
         os.environ.get('CSA_ACCOUNT_PASSWORD'),
         'https://hbci-pintan.gad.de/cgi-bin/hbciservlet',
-        # product_id=os.environ.get('CSA_HBCI_PRODUT_ID', None)
+        product_id=os.environ.get('CSA_HBCI_PRODUCT_ID', None)
     )
 
     accounts = f.get_sepa_accounts()
