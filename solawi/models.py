@@ -260,17 +260,22 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String, unique=True, nullable=False)
     _password = db.Column(db.Binary(128), nullable=False)
+    active = db.Column(db.Boolean, nullable=False, default=True)
 
-    def __init__(self, email, password):
+    def __init__(self, email, password, active=True):
         self.email = email.lower()
         self.password = password
+        self.active = active
 
     def check_password(self, password):
         return bcrypt.check_password_hash(self._password, password)
 
     @staticmethod
     def get_all_emails():
-        return db.session.query(User.email).all()
+        return db.session\
+            .query(User.email)\
+            .filter(User.active)\
+            .all()
 
     @staticmethod
     def get(id):
@@ -287,7 +292,10 @@ class User(db.Model):
     @staticmethod
     def authenticate_and_get(email, password):
         email = email.lower()
-        user = db.session.query(User).filter(User.email == email).one_or_none()
+        user = db.session.query(User)\
+            .filter(User.email == email)\
+            .filter(User.active)\
+            .one_or_none()
         if user is not None and user.check_password(password):
             return user
         else:
