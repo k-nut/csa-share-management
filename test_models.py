@@ -2,7 +2,7 @@ from datetime import datetime, date
 from decimal import Decimal
 
 from unittest.mock import MagicMock, patch
-from solawi.models import Bet, Deposit, Share, Station
+from solawi.models import Bet, Deposit, Share, Station, User
 from test_factories import ShareFactory, BetFactory, PersonFactory, MemberFactory, DepositFactory, UserFactory
 from test_helpers import DBTest
 
@@ -127,6 +127,37 @@ class MemberTest(DBTest):
         }
 
         assert member.json == expected
+
+
+class UserTest(DBTest):
+    def test_get_by_email(self):
+        UserFactory.create(email='user1@example.org')
+        UserFactory.create(active=False, email='user2@example.org')
+
+        emails = User.get_all_emails()
+
+        assert emails == [('user1@example.org',)]
+
+    def test_authenticate_and_get_success(self):
+        user = UserFactory.create(email='user1@example.org', password='hunter2')
+
+        fetched_user = User.authenticate_and_get('user1@example.org', 'hunter2')
+
+        assert fetched_user == user
+
+    def test_authenticate_and_get_wrong_password(self):
+        UserFactory.create(email='user1@example.org', password='hunter2')
+
+        fetched_user = User.authenticate_and_get('user1@example.org', 'supersecret')
+
+        assert fetched_user is None
+
+    def test_authenticate_and_get_wrong_no_longer_active(self):
+        UserFactory.create(email='user1@example.org', password='hunter2', active=False)
+
+        fetched_user = User.authenticate_and_get('user1@example.org', 'hunter2')
+
+        assert fetched_user is None
 
 
 class ModelTest(DBTest):

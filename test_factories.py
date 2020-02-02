@@ -67,6 +67,7 @@ class MemberFactory(factory.alchemy.SQLAlchemyModelFactory):
     email = factory.Faker('safe_email')
     share = factory.SubFactory(ShareFactory)
 
+
 class UserFactory(factory.alchemy.SQLAlchemyModelFactory):
     class Meta:
         model = User
