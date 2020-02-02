@@ -22,7 +22,7 @@ def api_login():
     user = models.User.authenticate_and_get(email, password)
     if user:
         access_token = create_access_token(identity=email)
-        return jsonify(access_token=access_token), 200
+        return jsonify(access_token=access_token, id=user.id), 200
     else:
         return jsonify({"message": "login failed"}), 401
 
