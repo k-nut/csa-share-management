@@ -277,4 +277,22 @@ def user_list():
     return jsonify(users=users)
 
 
+@api.route("/users/<int:id>", methods=["PATCH"])
+@jwt_required
+def modify_user(id):
+    user = User.get(id)
+
+    payload = request.get_json()
+    if not payload or not payload.get("password"):
+        return jsonify({"message": "json body must contain password field"}), 400
+
+    current_user_email = get_jwt_identity()
+    if not user.email == current_user_email:
+        return jsonify({"message": "you cannot change another users's password"}), 403
+
+    user.password = payload.get("password")
+    user.save()
+    return jsonify(user=user.json)
+
+
 app.register_blueprint(api, url_prefix='/api/v1')

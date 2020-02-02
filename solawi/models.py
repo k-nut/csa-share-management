@@ -256,7 +256,7 @@ class Person(db.Model, BaseModel):
             return new_person
 
 
-class User(db.Model):
+class User(db.Model, BaseModel):
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String, unique=True, nullable=False)
     _password = db.Column(db.Binary(128), nullable=False)
@@ -269,6 +269,13 @@ class User(db.Model):
 
     def check_password(self, password):
         return bcrypt.check_password_hash(self._password, password)
+
+    @property
+    def json(self):
+        return {
+            "email": self.email,
+            "active": self.active,
+        }
 
     @staticmethod
     def get_all_emails():

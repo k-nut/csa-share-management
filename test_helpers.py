@@ -1,10 +1,8 @@
 import unittest
 import os
 
-from flask.testing import FlaskClient
 from flask_jwt_extended import create_access_token
 from flask_migrate import upgrade
-from werkzeug.datastructures import Headers
 
 from solawi.app import app, db
 from test_factories import UserFactory
