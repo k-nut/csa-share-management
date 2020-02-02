@@ -287,7 +287,7 @@ def modify_user(id):
         return jsonify({"message": "json body must contain password field"}), 400
 
     current_user_email = get_jwt_identity()
-    if not user.email == current_user_email:
+    if not user or not user.email == current_user_email:
         return jsonify({"message": "you cannot change another users's password"}), 403
 
     user.password = payload.get("password")

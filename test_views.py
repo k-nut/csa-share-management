@@ -257,6 +257,16 @@ class UserManagementViewsTests(DBTest):
         updated_other_user = User.get(another_user_id)
         self.assertTrue(updated_other_user.check_password('supersecret')) # did not change other user
 
+    def test_modify_user_fails_for_unknown_user(self):
+        from solawi.models import User
+
+        user: User = UserFactory.create(password='hunter2')
+        self._login_as_user(user)
+
+        response = self.app.patch(f"/api/v1/users/9001", json={"password": "hunger3andsomemorelongtext"})
+
+        self.assertEqual(response.status_code, 403)
+
     def test_modify_user_updates_last_changed_date(self):
         from solawi.models import User
 
