@@ -1,4 +1,5 @@
-from datetime import date
+from datetime import date, datetime
+from unittest.mock import patch
 
 from flask import Response
 from solawi.app import db, app
@@ -255,3 +256,18 @@ class UserManagementViewsTests(DBTest):
         self.assertTrue(updated_user.check_password('hunter2')) # did not change own user
         updated_other_user = User.get(another_user_id)
         self.assertTrue(updated_other_user.check_password('supersecret')) # did not change other user
+
+    def test_modify_user_updates_last_changed_date(self):
+        from solawi.models import User
+
+        user: User = UserFactory.create(password='hunter2')
+        self._login_as_user(user)
+
+        with patch('solawi.models.date') as mock_date:
+            mock_date.today.return_value = date(2017, 3, 31)
+            response = self.app.patch(f"/api/v1/users/{user.id}", json={"password": "hunter3"})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json, {"user": user.json})
+        updated_user = User.get(user.id)
+        self.assertEqual(updated_user.password_changed_at, date(2017, 3, 31))

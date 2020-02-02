@@ -76,3 +76,4 @@ class UserFactory(factory.alchemy.SQLAlchemyModelFactory):
 
     email = factory.Faker('safe_email')
     password = factory.Faker('password')
+    password_changed_at = datetime.date(2016, 1, 1)
