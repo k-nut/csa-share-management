@@ -223,12 +223,12 @@ class UserManagementViewsTests(DBTest):
 
         user: User = UserFactory.create(password='hunter2')
         self._login_as_user(user)
-        response = self.app.patch(f"/api/v1/users/{user.id}", json={"password": "hunter3"})
+        response = self.app.patch(f"/api/v1/users/{user.id}", json={"password": "a-password-of-appropriate-length"})
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json, {"user": user.json})
         updated_user = User.get(user.id)
-        self.assertTrue(updated_user.check_password('hunter3'))
+        self.assertTrue(updated_user.check_password('a-password-of-appropriate-length'))
 
     def test_modify_user_requires_password(self):
         from solawi.models import User
@@ -240,6 +240,20 @@ class UserManagementViewsTests(DBTest):
 
         self.assertEqual(response.status_code, 400)
 
+    def test_modify_fails_if_too_short(self):
+        from solawi.models import User
+
+        user: User = UserFactory.create(email='user@example.org', password='hunter2')
+        self._login_as_user(user)
+
+        response = self.app.patch(f"/api/v1/users/{user.id}", json={"password": "tooshort"})
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json, {'message': 'Password must be at least 14 characters long'})
+
+        updated_user = User.get(user.id)
+        self.assertTrue(updated_user.check_password('hunter2')) # did not change own user
+
     def test_modify_other_user_fails(self):
         from solawi.models import User
 
@@ -248,7 +262,7 @@ class UserManagementViewsTests(DBTest):
         another_user_id = another_user.id
         self._login_as_user(user)
 
-        response = self.app.patch(f"/api/v1/users/{another_user_id}", json={"password": "hunter3"})
+        response = self.app.patch(f"/api/v1/users/{another_user_id}", json={"password": "a-password-of-appropriate-length"})
 
         self.assertEqual(response.status_code, 403)
 
@@ -263,7 +277,7 @@ class UserManagementViewsTests(DBTest):
         user: User = UserFactory.create(password='hunter2')
         self._login_as_user(user)
 
-        response = self.app.patch(f"/api/v1/users/9001", json={"password": "hunger3andsomemorelongtext"})
+        response = self.app.patch(f"/api/v1/users/9001", json={"password": "a-password-of-appropriate-length"})
 
         self.assertEqual(response.status_code, 403)
 
@@ -275,9 +289,10 @@ class UserManagementViewsTests(DBTest):
 
         with patch('solawi.models.date') as mock_date:
             mock_date.today.return_value = date(2017, 3, 31)
-            response = self.app.patch(f"/api/v1/users/{user.id}", json={"password": "hunter3"})
+            response = self.app.patch(f"/api/v1/users/{user.id}", json={"password": "a-password-of-appropriate-length"})
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json, {"user": user.json})
         updated_user = User.get(user.id)
         self.assertEqual(updated_user.password_changed_at, date(2017, 3, 31))
+

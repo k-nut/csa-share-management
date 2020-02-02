@@ -290,6 +290,9 @@ def modify_user(id):
     if not user or not user.email == current_user_email:
         return jsonify({"message": "you cannot change another users's password"}), 403
 
+    if len(payload.get("password")) < 14:
+        return jsonify({"message": "Password must be at least 14 characters long"}), 400
+
     user.password = payload.get("password")
     user.save()
     return jsonify(user=user.json)
