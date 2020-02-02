@@ -1,11 +1,12 @@
-from datetime import date
+from datetime import date, datetime
+from unittest.mock import patch
 
 from flask import Response
-
-from solawi.app import db
+from solawi.app import db, app
 from solawi.models import Member, Share
-from test_factories import ShareFactory, BetFactory, MemberFactory, StationFactory
+from test_factories import ShareFactory, BetFactory, MemberFactory, StationFactory, UserFactory
 from test_helpers import DBTest, AuthorizedTest
+from flask_jwt_extended import create_access_token
 
 
 class AuthorizedViewsTests(AuthorizedTest):
@@ -209,3 +210,89 @@ class UnAuthorizedViewsTests(DBTest):
 
         self.assertEqual(response.status_code, 401)
         self.assertEqual(db.session.query(Share).count(), 0)
+
+
+class UserManagementViewsTests(DBTest):
+    def _login_as_user(self, user):
+        self.app = app.test_client()
+        with app.app_context():
+            self.app.environ_base['HTTP_AUTHORIZATION'] = f'Bearer {create_access_token(identity=user.email)}'
+
+    def test_modify_user(self):
+        from solawi.models import User
+
+        user: User = UserFactory.create(password='hunter2')
+        self._login_as_user(user)
+        response = self.app.patch(f"/api/v1/users/{user.id}", json={"password": "a-password-of-appropriate-length"})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json, {"user": user.json})
+        updated_user = User.get(user.id)
+        self.assertTrue(updated_user.check_password('a-password-of-appropriate-length'))
+
+    def test_modify_user_requires_password(self):
+        from solawi.models import User
+
+        user: User = UserFactory.create(password='hunter2')
+        self._login_as_user(user)
+
+        response = self.app.patch(f"/api/v1/users/{user.id}")
+
+        self.assertEqual(response.status_code, 400)
+
+    def test_modify_fails_if_too_short(self):
+        from solawi.models import User
+
+        user: User = UserFactory.create(email='user@example.org', password='hunter2')
+        self._login_as_user(user)
+
+        response = self.app.patch(f"/api/v1/users/{user.id}", json={"password": "tooshort"})
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json, {'message': 'Password must be at least 14 characters long'})
+
+        updated_user = User.get(user.id)
+        self.assertTrue(updated_user.check_password('hunter2')) # did not change own user
+
+    def test_modify_other_user_fails(self):
+        from solawi.models import User
+
+        user: User = UserFactory.create(email='user@example.org', password='hunter2')
+        another_user: User = UserFactory.create(password='supersecret', email='other@example.org')
+        another_user_id = another_user.id
+        self._login_as_user(user)
+
+        response = self.app.patch(f"/api/v1/users/{another_user_id}", json={"password": "a-password-of-appropriate-length"})
+
+        self.assertEqual(response.status_code, 403)
+
+        updated_user = User.get(user.id)
+        self.assertTrue(updated_user.check_password('hunter2')) # did not change own user
+        updated_other_user = User.get(another_user_id)
+        self.assertTrue(updated_other_user.check_password('supersecret')) # did not change other user
+
+    def test_modify_user_fails_for_unknown_user(self):
+        from solawi.models import User
+
+        user: User = UserFactory.create(password='hunter2')
+        self._login_as_user(user)
+
+        response = self.app.patch(f"/api/v1/users/9001", json={"password": "a-password-of-appropriate-length"})
+
+        self.assertEqual(response.status_code, 403)
+
+    def test_modify_user_updates_last_changed_date(self):
+        from solawi.models import User
+
+        user: User = UserFactory.create(password='hunter2')
+        self._login_as_user(user)
+
+        with patch('solawi.models.date') as mock_date:
+            mock_date.today.return_value = date(2017, 3, 31)
+            response = self.app.patch(f"/api/v1/users/{user.id}", json={"password": "a-password-of-appropriate-length"})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json, {"user": user.json})
+        updated_user = User.get(user.id)
+        self.assertEqual(updated_user.password_changed_at, date(2017, 3, 31))
+

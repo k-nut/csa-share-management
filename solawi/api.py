@@ -22,7 +22,7 @@ def api_login():
     user = models.User.authenticate_and_get(email, password)
     if user:
         access_token = create_access_token(identity=email)
-        return jsonify(access_token=access_token), 200
+        return jsonify(access_token=access_token, id=user.id), 200
     else:
         return jsonify({"message": "login failed"}), 401
 
@@ -275,6 +275,27 @@ def get_person(person_id):
 def user_list():
     users = User.get_all_emails()
     return jsonify(users=users)
+
+
+@api.route("/users/<int:id>", methods=["PATCH"])
+@jwt_required
+def modify_user(id):
+    user = User.get(id)
+
+    payload = request.get_json()
+    if not payload or not payload.get("password"):
+        return jsonify({"message": "json body must contain password field"}), 400
+
+    current_user_email = get_jwt_identity()
+    if not user or not user.email == current_user_email:
+        return jsonify({"message": "you cannot change another users's password"}), 403
+
+    if len(payload.get("password")) < 14:
+        return jsonify({"message": "Password must be at least 14 characters long"}), 400
+
+    user.password = payload.get("password")
+    user.save()
+    return jsonify(user=user.json)
 
 
 app.register_blueprint(api, url_prefix='/api/v1')

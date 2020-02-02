@@ -256,19 +256,27 @@ class Person(db.Model, BaseModel):
             return new_person
 
 
-class User(db.Model):
+class User(db.Model, BaseModel):
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String, unique=True, nullable=False)
     _password = db.Column(db.Binary(128), nullable=False)
     active = db.Column(db.Boolean, nullable=False, default=True)
+    password_changed_at = db.Column(db.Date)
 
-    def __init__(self, email, password, active=True):
+    def __init__(self, email, password, active=True, **kwargs):
         self.email = email.lower()
         self.password = password
         self.active = active
 
     def check_password(self, password):
         return bcrypt.check_password_hash(self._password, password)
+
+    @property
+    def json(self):
+        return {
+            "email": self.email,
+            "active": self.active,
+        }
 
     @staticmethod
     def get_all_emails():
@@ -288,6 +296,7 @@ class User(db.Model):
     @password.setter
     def password(self, plaintext):
         self._password = bcrypt.generate_password_hash(plaintext)
+        self.password_changed_at = date.today()
 
     @staticmethod
     def authenticate_and_get(email, password):
