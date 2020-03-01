@@ -23,17 +23,6 @@ class ShareFactory(factory.alchemy.SQLAlchemyModelFactory):
     station = factory.SubFactory(StationFactory)
 
 
-class DepositFactory(factory.alchemy.SQLAlchemyModelFactory):
-    class Meta:
-        model = Deposit
-        sqlalchemy_session = db.session   # the SQLAlchemy session object
-        sqlalchemy_session_persistence = 'commit'
-
-    amount = 100
-    title = "My Deposit Title"
-
-
-
 class BetFactory(factory.alchemy.SQLAlchemyModelFactory):
     class Meta:
         model = Bet
@@ -52,8 +41,19 @@ class PersonFactory(factory.alchemy.SQLAlchemyModelFactory):
         sqlalchemy_session = db.session   # the SQLAlchemy session object
         sqlalchemy_session_persistence = 'commit'
 
-    name = factory.Faker('full_name')
+    name = factory.Faker('name')
     share = factory.SubFactory(ShareFactory)
+
+
+class DepositFactory(factory.alchemy.SQLAlchemyModelFactory):
+    class Meta:
+        model = Deposit
+        sqlalchemy_session = db.session   # the SQLAlchemy session object
+        sqlalchemy_session_persistence = 'commit'
+
+    amount = 100
+    title = "My Deposit Title"
+    person = factory.SubFactory(PersonFactory)
 
 
 class MemberFactory(factory.alchemy.SQLAlchemyModelFactory):

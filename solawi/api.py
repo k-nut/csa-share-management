@@ -170,6 +170,8 @@ def bet_details(share_id):
         bet = Bet()
         bet.share_id = share_id
 
+    # This actually behaves more like a PATCH then a POST
+    # maybe this should be changed?
     for field in ["value", "start_date", "end_date"]:
         if field in json:
             setattr(bet, field, json.get(field))

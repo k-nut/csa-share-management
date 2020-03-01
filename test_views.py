@@ -1,10 +1,11 @@
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from unittest.mock import patch
 
 from flask import Response
 from solawi.app import db, app
-from solawi.models import Member, Share
-from test_factories import ShareFactory, BetFactory, MemberFactory, StationFactory, UserFactory
+from solawi.models import Member, Share, Bet
+from test_factories import ShareFactory, BetFactory, MemberFactory, StationFactory, UserFactory, DepositFactory, \
+    PersonFactory
 from test_helpers import DBTest, AuthorizedTest
 from flask_jwt_extended import create_access_token
 
@@ -325,3 +326,114 @@ class UserManagementViewsTests(DBTest):
         self.assertEqual(response.json, {"user": user.json})
         updated_user = User.get(user.id)
         self.assertEqual(updated_user.password_changed_at, date(2017, 3, 31))
+
+
+class SharesTests(AuthorizedTest):
+    def test_get_shares(self):
+        bet = BetFactory.create(value=99)
+        MemberFactory.create(share=bet.share, name="Tom Doe")
+        MemberFactory.create(share=bet.share, name="Sarah Foe")
+
+        BetFactory.create(value=102)
+
+        response = self.app.get(f"/api/v1/shares")
+
+        expected = {'shares': [{'archived': False,
+                                'bets': [{'end_date': None,
+                                          'id': 1,
+                                          'share_id': 1,
+                                          'start_date': '2018-01-01T00:00:00',
+                                          'value': 99}],
+                                'id': 1,
+                                'name': 'Sarah Foe & Tom Doe',
+                                'note': None,
+                                'station_id': 1},
+                               {'archived': False,
+                                'bets': [{'end_date': None,
+                                          'id': 2,
+                                          'share_id': 2,
+                                          'start_date': '2018-01-01T00:00:00',
+                                          'value': 102}],
+                                'id': 2,
+                                'name': '',
+                                'note': None,
+                                'station_id': 2}]}
+
+        self.assertEqual(response.status_code, 200)
+
+        self.assertEqual(response.json, expected)
+
+
+class PaymentStatusTests(AuthorizedTest):
+    def test_get_shares(self):
+        # The tests for making sure that the right amout is calculated for the
+        # expected value are in test_models
+        # This should only be for the api
+        station = StationFactory.create(name="Our Station")
+        share = ShareFactory.create(station=station)
+        bet = BetFactory.create(value=99, start_date=date(2019, 1, 1), end_date=date(2019, 2, 1), share=share)
+        person = PersonFactory.create(share=bet.share)
+        DepositFactory.create(person=person, amount=99)
+
+        response = self.app.get(f"/api/v1/shares/payment_status")
+
+        expected = {'shares': [{'archived': False,
+                                'difference_today': 0,
+                                'expected_today': 99,
+                                'id': 1,
+                                'name': '',
+                                'note': None,
+                                'number_of_deposits': 1,
+                                'station_name': "Our Station",
+                                'total_deposits': 99.0}]}
+
+        self.assertEqual(response.status_code, 200)
+
+        self.assertEqual(response.json, expected)
+
+
+class ShareDetailsTests(AuthorizedTest):
+    def test_get_share_details(self):
+        share = ShareFactory.create()
+
+        response = self.app.get(f"/api/v1/shares/{share.id}")
+
+        expected = {'share': {'archived': False,
+                              'bets': [],
+                              'difference_today': 0,
+                              'expected_today': 0,
+                              'id': 1,
+                              'name': '',
+                              'note': None,
+                              'station_id': 1,
+                              'total_deposits': 0}}
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json, expected)
+
+
+class BetDetailsTests(AuthorizedTest):
+    def test_create_bet(self):
+        share = ShareFactory.create()
+        self.assertEqual(db.session.query(Bet).count(), 0)
+
+        response = self.app.post(f"/api/v1/shares/{share.id}/bets", json={"value": "99", "start_date": "2019-01-01"})
+
+        bet = db.session.query(Bet).first()
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(db.session.query(Bet).count(), 1)
+        self.assertEqual(bet.value, 99)
+        self.assertEqual(bet.start_date, datetime(2019, 1, 1, 0, 0))
+        self.assertEqual(bet.end_date, None)
+
+    def test_edit_bet(self):
+        bet = BetFactory.create(value=20)
+
+        response = self.app.post(f"/api/v1/shares/{bet.share.id}/bets", json={"id": bet.id, "value": "99"})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(db.session.query(Bet).count(), 1)
+        updated_bet = db.session.query(Bet).first()
+        self.assertEqual(updated_bet.value, 99)
+        self.assertEqual(updated_bet.start_date, bet.start_date)
+        self.assertEqual(updated_bet.end_date, bet.end_date)
