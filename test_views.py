@@ -78,7 +78,6 @@ class AuthorizedViewsTests(AuthorizedTest):
         station1 = StationFactory.create(name="Station 1")
         station2 = StationFactory.create(name="Station 2")
 
-
         share1 = ShareFactory.create(members=[member1, member2], station=station1)
         share2 = ShareFactory.create(members=[member3], station=station2)
 
@@ -211,6 +210,36 @@ class UnAuthorizedViewsTests(DBTest):
         self.assertEqual(response.status_code, 401)
         self.assertEqual(db.session.query(Share).count(), 0)
 
+    def test_login_success(self):
+        UserFactory.create(email='user@example.org', password="supersecret")
+
+        response = self.app.post(f"/api/v1/login", json={"email": "user@example.org", "password": "supersecret"})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(len(response.json['access_token']) > 1)
+
+    def test_login_no_user(self):
+        response = self.app.post(f"/api/v1/login", json={"email": "myuser@example.org", "password": "hunter2"})
+
+        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.json, {"message": "login failed"})
+
+    def test_login_wrong_password(self):
+        UserFactory.create(email='user@example.org', password="supersecret")
+
+        response = self.app.post(f"/api/v1/login", json={"email": "user@example.org", "password": "hunter2"})
+
+        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.json, {"message": "login failed"})
+
+    def test_login_not_active(self):
+        UserFactory.create(email='user@example.org', password="supersecret", active=False)
+
+        response = self.app.post(f"/api/v1/login", json={"email": "user@example.org", "password": "supersecret"})
+
+        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.json, {"message": "login failed"})
+
 
 class UserManagementViewsTests(DBTest):
     def _login_as_user(self, user):
@@ -252,7 +281,7 @@ class UserManagementViewsTests(DBTest):
         self.assertEqual(response.json, {'message': 'Password must be at least 14 characters long'})
 
         updated_user = User.get(user.id)
-        self.assertTrue(updated_user.check_password('hunter2')) # did not change own user
+        self.assertTrue(updated_user.check_password('hunter2'))  # did not change own user
 
     def test_modify_other_user_fails(self):
         from solawi.models import User
@@ -262,14 +291,15 @@ class UserManagementViewsTests(DBTest):
         another_user_id = another_user.id
         self._login_as_user(user)
 
-        response = self.app.patch(f"/api/v1/users/{another_user_id}", json={"password": "a-password-of-appropriate-length"})
+        response = self.app.patch(f"/api/v1/users/{another_user_id}",
+                                  json={"password": "a-password-of-appropriate-length"})
 
         self.assertEqual(response.status_code, 403)
 
         updated_user = User.get(user.id)
-        self.assertTrue(updated_user.check_password('hunter2')) # did not change own user
+        self.assertTrue(updated_user.check_password('hunter2'))  # did not change own user
         updated_other_user = User.get(another_user_id)
-        self.assertTrue(updated_other_user.check_password('supersecret')) # did not change other user
+        self.assertTrue(updated_other_user.check_password('supersecret'))  # did not change other user
 
     def test_modify_user_fails_for_unknown_user(self):
         from solawi.models import User
@@ -295,4 +325,3 @@ class UserManagementViewsTests(DBTest):
         self.assertEqual(response.json, {"user": user.json})
         updated_user = User.get(user.id)
         self.assertEqual(updated_user.password_changed_at, date(2017, 3, 31))
-
