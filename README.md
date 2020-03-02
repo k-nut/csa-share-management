@@ -53,6 +53,9 @@ flask import-statements
 When you deploy the application, you should put this into a cronjob and run it 
 daily (or weekly if that is sufficient for your use case).
 
+There used to also exist an endpoint to manually import data where users could upload a CSV that the previously
+exported from the bank's website. This integration broke when our bank switched backend providers though
+and was replaced by the FinTS import. The code was removed in commit [5fa2518b37ce54d728c855f379a758442819f669](https://github.com/k-nut/csa-share-management/commit/5fa2518b37ce54d728c855f379a758442819f669).
 
 ## Data Model
 ![data model graph](./db-structure.png)
