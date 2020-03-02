@@ -1,4 +1,3 @@
-import csv
 from http import HTTPStatus
 
 from decimal import Decimal
@@ -7,7 +6,7 @@ from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identi
 from sqlalchemy.orm import joinedload
 
 from solawi import models
-from solawi.controller import merge, import_deposits
+from solawi.controller import merge
 from solawi.models import Share, Deposit, Person, User, Bet, Member
 
 from solawi.app import app, db
@@ -248,22 +247,6 @@ def merge_shares():
         return jsonify(message='You need to supply share1 and share2'), 400
     merge(share1, share2)
     return jsonify(message='success')
-
-
-def allowed_file(filename):
-    return '.' in filename and \
-           filename.rsplit('.', 1)[1] in ['csv', 'CSV']
-
-
-@api.route("/deposits/upload", methods=["POST"])
-@jwt_required
-def upload_file():
-    sent_file = request.files['file']
-    if sent_file and allowed_file(sent_file.filename):
-        decoded = [a.decode("windows-1252") for a in sent_file.readlines()]
-        content = csv.DictReader(decoded, delimiter=";")
-        import_deposits([line for line in content])
-        return jsonify(message='success!')
 
 
 @api.route("/person/<int:person_id>", methods=["GET"])

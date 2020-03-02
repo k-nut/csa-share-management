@@ -1,7 +1,4 @@
-import csv
-from datetime import datetime
-
-from solawi.models import Share, Member, Person, Deposit
+from solawi.models import Share
 
 
 def without_nones(listlike):
@@ -24,34 +21,3 @@ def merge(first_share_id, second_share_id):
     first_share.save()
     second_share.delete()
     return first_share.id
-
-
-def get_data(filepath):
-    with open(filepath) as infile:
-        content = csv.DictReader(infile, delimiter=";")
-        return [line for line in content]
-
-
-def import_deposits(data):
-    for line in data:
-        value = float(line["Betrag"].replace(".", "").replace(",", "."))
-        date = datetime.strptime(line["Buchungstag"], "%d.%m.%Y")
-        keys = ["VWZ%i" % i for i in range(1, 15)]
-        title = "".join([line[key] for key in keys])
-        name = line["Auftraggeber/Empf\xe4nger"]
-        if value > 0:
-            person = Person.get_or_create(name)
-            deposit = Deposit(amount=value,
-                                     timestamp=date,
-                                     person=person,
-                                     title=title)
-            deposit.save()
-
-            if person.share_id is None:
-                member = Member(name=name)
-                member.save()
-
-                share = Share()
-                share.people.append(person)
-                share.members.append(member)
-                share.save()
