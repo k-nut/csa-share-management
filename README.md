@@ -97,3 +97,9 @@ pytest --cov=./
 ```
 
 [1]: https://www.hbci-zka.de/register/prod_register.htm
+
+## Maintainers' Responsibilities 
+In addition to bug fixes, the CSA Share Management tool maintainer/s have the following responsibilities: 
+- Create new Accounts 
+- Coordinate imports mit Geli (namely, Geli gets a new PIN on her cell phone every 3 months, after which we have to manually start the import with the new PIN)
+- Coordinate end-of-the-year Export for Barny, which is done directly via the Database in Heroku
