@@ -15,7 +15,7 @@ def clean_title(title):
     return title.strip()
 
 
-def import_fin_ts():
+def import_fin_ts(is_interactive):
     logging.basicConfig(level=logging.WARN)
     f = FinTS3PinTanClient(
         os.environ.get('CSA_ACCOUNT_BLZ'),
@@ -36,6 +36,8 @@ def import_fin_ts():
 
     with f:
         if f.init_tan_response:
+            if not is_interactive:
+                raise Exception('Bank requires a TAN but the session is non-interactive')
             print(f.init_tan_response.challenge)
             tan = input('Please enter TAN:')
             f.send_tan(f.init_tan_response, tan)

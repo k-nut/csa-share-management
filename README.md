@@ -53,6 +53,12 @@ flask import-statements
 When you deploy the application, you should put this into a cronjob and run it 
 daily (or weekly if that is sufficient for your use case).
 
+The `import-statements` command takes a `--interactive/--non-interactive` flag. If it is set to `--non-interactive`
+(this is the default), it will raise an exception if the bank requires a TAN for this import to be completed. If this
+happens, the command should be re-triggered from the command line with the `--interactive` flag and the PIN should be
+put in by the developer. Due to PSD2 regulations this manual import with a PIN will probably have to be done about
+once per quarter (but this is at the bank's discretion).
+
 There used to also exist an endpoint to manually import data where users could upload a CSV that the previously
 exported from the bank's website. This integration broke when our bank switched backend providers though
 and was replaced by the FinTS import. The code was removed in commit [5fa2518b37ce54d728c855f379a758442819f669](https://github.com/k-nut/csa-share-management/commit/5fa2518b37ce54d728c855f379a758442819f669).

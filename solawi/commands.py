@@ -17,6 +17,6 @@ def createuser(email, password):
 
 
 @app.cli.command()
-def import_statements():
-    """Create a new user"""
-    import_fin_ts()
+@click.option('--interactive/--non-interactive', default=False)
+def import_statements(interactive):
+    import_fin_ts(interactive)
