@@ -1,4 +1,5 @@
 import click
+from getpass import getpass
 
 from solawi.app import app, db
 from solawi.models import User
@@ -14,6 +15,18 @@ def createuser(email, password):
     db.session.add(user)
     db.session.commit()
     click.echo("Made user with address {}".format(user.email))
+
+
+@app.cli.command()
+@click.argument('email')
+def change_password(email):
+    """Change a user's password"""
+    user = User.get_by_email(email)
+    if not user:
+        raise click.UsageError("No user found for e-mail \"{}\"".format(email))
+    user.password = getpass()
+    user.save()
+    click.echo("Updated user {}".format(user))
 
 
 @app.cli.command()

@@ -289,6 +289,14 @@ class User(db.Model, BaseModel):
     def get(id):
         return db.session.query(User).get(id)
 
+    @staticmethod
+    def get_by_email(email):
+        email = email.lower()
+        return db.session.query(User) \
+            .filter(User.email == email) \
+            .filter(User.active) \
+            .one_or_none()
+
     @hybrid_property
     def password(self):
         return self._password
@@ -300,11 +308,7 @@ class User(db.Model, BaseModel):
 
     @staticmethod
     def authenticate_and_get(email, password):
-        email = email.lower()
-        user = db.session.query(User)\
-            .filter(User.email == email)\
-            .filter(User.active)\
-            .one_or_none()
+        user = User.get_by_email(email)
         if user is not None and user.check_password(password):
             return user
         else:
