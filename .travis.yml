@@ -3,6 +3,7 @@ dist: xenial
 python:
   - "3.6"
   - "3.7"
+  - "3.9"
 env:
   global:
     - DATABASE_URL_TEST="postgres://postgres@localhost/test_solawi"
