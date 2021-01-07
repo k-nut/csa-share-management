@@ -1,10 +1,12 @@
 language: python
 dist: xenial
 python:
-  - "3.6"
   - "3.7"
+  - "3.9"
 env:
-  - DATABASE_URL_TEST="postgres://postgres@localhost/test_solawi"
+  global:
+    - DATABASE_URL_TEST="postgres://postgres@localhost/test_solawi"
+    - SECRET_KEY="hunter2"
 services:
   - postgresql
 install:
