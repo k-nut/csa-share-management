@@ -1,6 +1,6 @@
 alembic==0.8.6
 factory-boy==2.11.1
-git+https://github.com/raphaelm/python-fints.git@psd2#egg=fints
+fints==3.0.1
 Flask==1.0.2
 Flask-Bcrypt==0.7.1
 Flask-Cors==3.0.3
@@ -11,7 +11,7 @@ freezegun==0.3.9
 pytest==3.6.3
 pytest-cov==2.5.1
 pytest-watch==3.10.0
-psycopg2==2.7.1
+psycopg2==2.8.6
 raven[flask]
 simplejson==3.12.0 # for Decimal support in jsonify
 
