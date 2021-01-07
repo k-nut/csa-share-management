@@ -13,10 +13,14 @@ from flask_migrate import Migrate
 from raven.contrib.flask import Sentry
 
 
+secret_key = os.environ.get('SECRET_KEY')
+if secret_key is None:
+    raise Exception("You must supply the `SECRET_KEY` environment variable.")
+
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:////home/knut/solawi.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'verysecret')
+app.config['SECRET_KEY'] = secret_key
 app.config['JWT_ACCESS_TOKEN_EXPIRES'] = 60 * 60
 app.debug = os.environ.get("DEBUG", False)
 app.logger.addHandler(logging.StreamHandler(sys.stdout))
