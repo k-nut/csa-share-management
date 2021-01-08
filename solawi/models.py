@@ -2,6 +2,7 @@
 import datetime
 from datetime import date
 from decimal import Decimal
+from typing import Dict
 
 from dateutil.relativedelta import relativedelta
 from sqlalchemy.ext.hybrid import hybrid_property
@@ -221,6 +222,37 @@ class Share(db.Model, BaseModel):
     def currently_active(self):
         return any([bet.currently_active for bet in self.bets])
 
+    @staticmethod
+    def get_deposit_map() -> Dict[int, Dict[str, str]]:
+        """
+        returns a dictionary in the form
+        ```
+        {
+          <share_id>: {
+           "total_deposits": <decimal>
+           "number_of_deposits": <decimal>
+          }
+        }
+        ```
+
+        The goal of this method is to push these aggregations
+        to the database to reduce the amount of data that gets
+        transferred between database and client in order to speed
+        up the overall performance of the API.
+        """
+        result = db.engine.execute("""
+        select person.share_id,
+               sum(amount) as total_deposits,
+               count(*) as number_of_deposits
+        from deposit
+        join person on person.id = deposit.person_id
+        where not (deposit.is_security or deposit.ignore)
+        group by person.share_id
+""")
+        return {row.share_id: {
+                    "number_of_deposits": row.number_of_deposits,
+                    "total_deposits": row.total_deposits,
+        } for row in result}
 
 
 class Station(db.Model, BaseModel):

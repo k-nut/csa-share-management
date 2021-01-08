@@ -103,19 +103,20 @@ def member_delete(member_id):
 @api.route("/shares/payment_status", methods=["GET"])
 @jwt_required
 def get_payment_list():
-    shares = db.session.query(Share).options(joinedload(Share.members)) \
+    deposit_map = Share.get_deposit_map()
+    shares = db.session.query(Share)\
+        .options(joinedload(Share.members)) \
         .options(joinedload(Share.bets)) \
-        .options(joinedload(Share.people)) \
-        .options(joinedload(Share.people, Person.deposits)) \
         .options(joinedload(Share.station)) \
         .all()
     res = []
     for share in shares:
+        deposit_details = deposit_map.get(share.id, {})
         share_payments = {
             'id': share.id,
             'name': share.name,
-            'total_deposits': share.total_deposits,
-            'number_of_deposits': share.number_of_deposits,
+            'total_deposits': deposit_details.get("total_deposits", 0),
+            'number_of_deposits': deposit_details.get("number_of_deposits", 0),
             'archived': share.archived,
             'note': share.note,
             'station_name': share.station.name if share.station else "",
