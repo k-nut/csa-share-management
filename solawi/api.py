@@ -104,9 +104,9 @@ def member_delete(member_id):
 @jwt_required
 def get_payment_list():
     deposit_map = Share.get_deposit_map()
+    expected_amount_map = Share.get_expected_amount_map()
     shares = db.session.query(Share)\
         .options(joinedload(Share.members)) \
-        .options(joinedload(Share.bets)) \
         .options(joinedload(Share.station)) \
         .all()
     res = []
@@ -120,10 +120,9 @@ def get_payment_list():
             'archived': share.archived,
             'note': share.note,
             'station_name': share.station.name if share.station else "",
-            'expected_today': share.expected_today,
+            'expected_today': expected_amount_map.get(share.id, 0),
         }
-        share_payments['difference_today'] = - (
-                    Decimal(share_payments['expected_today'] or 0) - share_payments['total_deposits'])
+        share_payments['difference_today'] = share_payments['total_deposits'] - share_payments['expected_today']
         res.append(share_payments)
     return jsonify(shares=res)
 

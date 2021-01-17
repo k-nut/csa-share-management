@@ -9,7 +9,7 @@ from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import class_mapper
 from sqlalchemy.orm.exc import NoResultFound
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy import UniqueConstraint, func
+from sqlalchemy import UniqueConstraint, func, text
 
 from solawi.app import db, app, bcrypt
 
@@ -96,34 +96,30 @@ class Bet(db.Model, BaseModel):
     def currently_active(self):
         return (not self.end_date) or (self.end_date.date() > datetime.date.today())
 
+    def expected_at(self, date):
+        if date:
+            return db.engine.execute(text("""
+              SELECT get_expected_today(bet.start_date::date,
+                                        bet.end_date::date,
+                                        bet.value,
+                                        :date
+                                       )
+              from bet
+              where bet.id = :id
+              """), {"date": date, "id": self.id}).scalar()
+
+        return db.engine.execute(text("""
+          SELECT get_expected_today(bet.start_date::date,
+                                    bet.end_date::date,
+                                    bet.value
+                                   )
+          from bet
+          where bet.id = :id
+          """), { "id": self.id}).scalar()
+
     @property
     def expected_today(self):
-        NEW_PAYMENY_REQUIRED_DAY = 27
-        end_date = self.end_date or date.today()
-        delta = relativedelta(end_date, self.start_date)
-        months = delta.months + delta.years * 12
-
-        if end_date.day >= NEW_PAYMENY_REQUIRED_DAY:
-            months += 1
-
-        if date.today() > self.start_date.date() and not self.end_date:
-            # if this bet is still active, we expect them to have payed
-            # for the following month already
-            months += 1
-
-        if self.start_date.day >= 15:
-            # If the Bet was started at mid-month, subtract half
-            # a month from the expected amount
-            months -= Decimal('0.5')
-
-            if delta.days > 16:
-                # If the Bet started at a half month and today is a new
-                # month (but no full month in the delta yet), we need to
-                # account for one more month.
-                months += 1
-
-        return months * (self.value or 0)
-
+        return self.expected_at(None)
 
 class Share(db.Model, BaseModel):
     id = db.Column(db.Integer, primary_key=True)  # pylint: disable=invalid-name
@@ -253,6 +249,30 @@ class Share(db.Model, BaseModel):
                     "number_of_deposits": row.number_of_deposits,
                     "total_deposits": row.total_deposits,
         } for row in result}
+
+    @staticmethod
+    def get_expected_amount_map() -> Dict[int, (Decimal or None)]:
+        """
+        returns a dictionary in the form
+        ```
+        {
+          <share_id>: <decimal>
+        }
+        ```
+        where the dictionary value is the amount of money that we
+        expect this share to have paid by today.
+        """
+        result = db.engine.execute("""
+        SELECT share_id,
+          SUM(
+            get_expected_today(bet.start_date::date,
+                               bet.end_date::date,
+                               bet.value
+                               )
+          ) as expected_today from bet
+        group by share_id;
+        """)
+        return {row.share_id: row.expected_today for row in result}
 
 
 class Station(db.Model, BaseModel):
