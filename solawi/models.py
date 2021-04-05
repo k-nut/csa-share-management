@@ -311,7 +311,7 @@ class Person(db.Model, BaseModel):
 class User(db.Model, BaseModel):
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String, unique=True, nullable=False)
-    _password = db.Column(db.Binary(128), nullable=False)
+    _password = db.Column(db.LargeBinary(128), nullable=False)
     active = db.Column(db.Boolean, nullable=False, default=True)
     password_changed_at = db.Column(db.Date)
 

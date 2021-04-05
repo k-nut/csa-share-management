@@ -16,8 +16,8 @@ This app requires a set of environment variables to be defined:
 
 | name                 | description                                                                 | example value                                  |
 |:---------------------|:----------------------------------------------------------------------------|:-----------------------------------------------|
-| DATABASE_URL         | The URL for the database that the application should use                    | `postgres://postgres@0.0.0.0:5432/solawi`      |
-| DATABASE_URL_TEST    | The URL for the database that should be used for tests                      | `postgres://postgres@0.0.0.0:5432/test_solawi` |
+| DATABASE_URL         | The URL for the database that the application should use                    | `postgresql://postgres@0.0.0.0:5432/solawi`      |
+| DATABASE_URL_TEST    | The URL for the database that should be used for tests                      | `postgresql://postgres@0.0.0.0:5432/test_solawi` |
 | FLASK_DEBUG          | Set to True for better local debugging. Always `False` for production       | `True `                                        |
 | FLASK_APP            | The path to the application. Always `solawi/app.py`                         | `solawi/app.py `                               |
 | CSA_ACCOUNT_BLZ      | The Bankleitzahl for the account from which deposits should be imported     | `43060967 `                                    |
