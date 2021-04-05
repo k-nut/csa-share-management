@@ -5,6 +5,7 @@ python:
   - "3.9"
 env:
   global:
+    - DATABASE_URL="postgresql://postgres@localhost/test_solawi" # not used but existence is checked
     - DATABASE_URL_TEST="postgresql://postgres@localhost/test_solawi"
     - SECRET_KEY="hunter2"
 services:
