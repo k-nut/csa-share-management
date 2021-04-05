@@ -1,6 +1,7 @@
 import logging
 import os
 from decimal import Decimal
+from typing import Optional
 
 from dateutil.relativedelta import relativedelta
 from fints.client import FinTS3PinTanClient, FinTSClientMode, FinTSUnsupportedOperation, NeedTANResponse
@@ -8,7 +9,9 @@ from fints.client import FinTS3PinTanClient, FinTSClientMode, FinTSUnsupportedOp
 from solawi.models import Person, Deposit, Member, Share
 
 
-def clean_title(title):
+def clean_title(title: Optional[str]):
+    if title is None:
+        return None
     for word in ["IBAN", "EREF:", "Dauerauftrag-Gutschrift"]:
         if word in title:
             title = title.split(word)[0]
