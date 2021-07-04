@@ -356,3 +356,14 @@ class ModelTest(DBTest):
                   )
         bet.save()
         assert share.expected_today == 150
+
+    def test_expected_at_a_time_before_the_bets_end_time(self):
+        import datetime
+        share = ShareFactory.create()
+        bet = Bet(start_date=datetime.date(2017, 1, 1),
+                  end_date=datetime.date(2017, 12, 31),
+                  value=100,
+                  share_id=share.id
+                  )
+        bet.save()
+        assert bet.expected_at(datetime.date(2017, 3, 31)) == 300
