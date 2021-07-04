@@ -11,7 +11,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 from flask_migrate import Migrate
 from raven.contrib.flask import Sentry
-
+from simplejson import JSONEncoder
 
 secret_key = os.environ.get('SECRET_KEY')
 if secret_key is None:
@@ -34,6 +34,8 @@ app.config['JWT_ACCESS_TOKEN_EXPIRES'] = 60 * 60
 app.debug = os.environ.get("DEBUG", False)
 app.logger.addHandler(logging.StreamHandler(sys.stdout))
 app.logger.setLevel(logging.ERROR)
+app.json_encoder = JSONEncoder # For automatic Decimal support
+
 jwt = JWTManager(app)
 
 sentry = Sentry(app)
