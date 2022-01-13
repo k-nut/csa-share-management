@@ -5,3 +5,4 @@ htmlcov/
 csa/
 .envrc
 .pytest_cache/
+.env
