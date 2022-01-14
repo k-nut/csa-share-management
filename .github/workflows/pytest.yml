@@ -32,4 +32,5 @@ jobs:
         env:
           DATABASE_URL: postgresql://postgres:password@localhost/solawi
           DATABASE_URL_TEST: postgresql://postgres:password@localhost/solawi
+          SECRET_KEY: required_but_unused_in_test
       - run: codecov
