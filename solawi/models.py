@@ -2,19 +2,17 @@
 import datetime
 from datetime import date
 from decimal import Decimal
-from typing import Dict
 
-from dateutil.relativedelta import relativedelta
+from sqlalchemy import UniqueConstraint, func, text
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import class_mapper
 from sqlalchemy.orm.exc import NoResultFound
-from sqlalchemy.exc import IntegrityError
-from sqlalchemy import UniqueConstraint, func, text
 
-from solawi.app import db, app, bcrypt
+from solawi.app import app, bcrypt, db
 
 
-class BaseModel():
+class BaseModel:
     def save(self):
         try:
             db.session.add(self)
@@ -31,7 +29,7 @@ class BaseModel():
         try:
             db.session.delete(self)
             db.session.commit()
-        except IntegrityError as e:
+        except IntegrityError:
             db.session.rollback()
 
     @classmethod
@@ -53,7 +51,7 @@ class Member(db.Model, BaseModel):
     phone = db.Column(db.String)
     name = db.Column(db.String)
     email = db.Column(db.String)
-    share_id = db.Column(db.Integer, db.ForeignKey('share.id'))
+    share_id = db.Column(db.Integer, db.ForeignKey("share.id"))
 
 
 class Deposit(db.Model, BaseModel):
@@ -63,34 +61,32 @@ class Deposit(db.Model, BaseModel):
     is_security = db.Column(db.Boolean, default=False)
     title = db.Column(db.Text)
     ignore = db.Column(db.Boolean, default=False)
-    added_by = db.Column(db.Integer, db.ForeignKey('user.id'))
+    added_by = db.Column(db.Integer, db.ForeignKey("user.id"))
 
-    person_id = db.Column(db.Integer, db.ForeignKey('person.id'))
+    person_id = db.Column(db.Integer, db.ForeignKey("person.id"))
 
-
-    __table_args__ = (UniqueConstraint('timestamp',
-                                       'amount',
-                                       'title',
-                                       'person_id',
-                                       name='_all_fields'),
-                      )
+    __table_args__ = (
+        UniqueConstraint("timestamp", "amount", "title", "person_id", name="_all_fields"),
+    )
 
     def __repr__(self):
-        return '<Deposit %i %r %s>' % (self.amount, self.timestamp, self.person.name)
+        return "<Deposit %i %r %s>" % (self.amount, self.timestamp, self.person.name)
 
     @classmethod
     def latest_import(cls):
-        return db.session\
-            .query(func.max(Deposit.timestamp))\
-            .filter(Deposit.added_by.is_(None))\
+        return (
+            db.session.query(func.max(Deposit.timestamp))
+            .filter(Deposit.added_by.is_(None))
             .scalar()
+        )
+
 
 class Bet(db.Model, BaseModel):
     id = db.Column(db.Integer, primary_key=True)  # pylint: disable=invalid-name
     value = db.Column(db.Numeric)
     start_date = db.Column(db.DateTime, default=datetime.date(2017, 5, 1))
     end_date = db.Column(db.DateTime)
-    share_id = db.Column(db.Integer, db.ForeignKey('share.id'))
+    share_id = db.Column(db.Integer, db.ForeignKey("share.id"))
 
     @property
     def currently_active(self):
@@ -98,7 +94,9 @@ class Bet(db.Model, BaseModel):
 
     def expected_at(self, date):
         if date:
-            return db.engine.execute(text("""
+            return db.engine.execute(
+                text(
+                    """
               SELECT get_expected_today(bet.start_date::date,
                                         bet.end_date::date,
                                         bet.value,
@@ -106,33 +104,36 @@ class Bet(db.Model, BaseModel):
                                        )
               from bet
               where bet.id = :id
-              """), {"date": date, "id": self.id}).scalar()
+              """
+                ),
+                {"date": date, "id": self.id},
+            ).scalar()
 
-        return db.engine.execute(text("""
+        return db.engine.execute(
+            text(
+                """
           SELECT get_expected_today(bet.start_date::date,
                                     bet.end_date::date,
                                     bet.value
                                    )
           from bet
           where bet.id = :id
-          """), { "id": self.id}).scalar()
+          """
+            ),
+            {"id": self.id},
+        ).scalar()
 
     @property
     def expected_today(self):
         return self.expected_at(None)
 
+
 class Share(db.Model, BaseModel):
     id = db.Column(db.Integer, primary_key=True)  # pylint: disable=invalid-name
-    people = db.relationship('Person',
-                             backref="share",
-                             cascade="all, delete-orphan")
-    bets = db.relationship('Bet',
-                           backref="share",
-                           cascade="all, delete-orphan")
-    members = db.relationship('Member',
-                              backref="share",
-                              cascade="all, delete-orphan")
-    station_id = db.Column(db.Integer, db.ForeignKey('station.id'))
+    people = db.relationship("Person", backref="share", cascade="all, delete-orphan")
+    bets = db.relationship("Bet", backref="share", cascade="all, delete-orphan")
+    members = db.relationship("Member", backref="share", cascade="all, delete-orphan")
+    station_id = db.Column(db.Integer, db.ForeignKey("station.id"))
     note = db.Column(db.Text)
     archived = db.Column(db.Boolean, default=False)
 
@@ -150,7 +151,7 @@ class Share(db.Model, BaseModel):
 
     @property
     def name(self):
-        return " & ".join(sorted([member.name for member in self.members if member.name]))
+        return " & ".join(sorted(member.name for member in self.members if member.name))
 
     @property
     def join_date(self):
@@ -159,31 +160,33 @@ class Share(db.Model, BaseModel):
 
     @staticmethod
     def get_deposits(share_id):
-        res = db.session.query(Deposit, Person.name, Person.id, User.email) \
-            .join(Person) \
-            .outerjoin(User, User.id == Deposit.added_by) \
-            .filter(Person.share_id == share_id) \
+        res = (
+            db.session.query(Deposit, Person.name, Person.id, User.email)
+            .join(Person)
+            .outerjoin(User, User.id == Deposit.added_by)
+            .filter(Person.share_id == share_id)
             .all()
+        )
         result = []
         for deposit, person_name, person_id, adder_email in res:
-            result.append(dict(
-                id=deposit.id,
-                timestamp=deposit.timestamp,
-                amount=deposit.amount,
-                title=deposit.title,
-                added_by_email=adder_email,
-                person_id=person_id,
-                person_name=person_name,
-                ignore=deposit.ignore,
-                is_security=deposit.is_security
-            ))
-        return (result)
+            result.append(
+                dict(
+                    id=deposit.id,
+                    timestamp=deposit.timestamp,
+                    amount=deposit.amount,
+                    title=deposit.title,
+                    added_by_email=adder_email,
+                    person_id=person_id,
+                    person_name=person_name,
+                    ignore=deposit.ignore,
+                    is_security=deposit.is_security,
+                )
+            )
+        return result
 
     @staticmethod
     def get_bets(share_id):
-        res = db.session.query(Bet) \
-            .filter(Bet.share_id == share_id) \
-            .all()
+        res = db.session.query(Bet).filter(Bet.share_id == share_id).all()
         return [bet.json for bet in res]
 
     @property
@@ -195,8 +198,7 @@ class Share(db.Model, BaseModel):
 
     @property
     def valid_deposits(self):
-        return [deposit for deposit in self.deposits
-                if not (deposit.ignore or deposit.is_security)]
+        return [deposit for deposit in self.deposits if not (deposit.ignore or deposit.is_security)]
 
     @property
     def station_name(self):
@@ -212,14 +214,14 @@ class Share(db.Model, BaseModel):
 
     @property
     def expected_today(self):
-        return sum([bet.expected_today for bet in self.bets])
+        return sum(bet.expected_today for bet in self.bets)
 
     @property
     def currently_active(self):
         return any([bet.currently_active for bet in self.bets])
 
     @staticmethod
-    def get_deposit_map() -> Dict[int, Dict[str, str]]:
+    def get_deposit_map() -> dict[int, dict[str, str]]:
         """
         returns a dictionary in the form
         ```
@@ -236,7 +238,8 @@ class Share(db.Model, BaseModel):
         transferred between database and client in order to speed
         up the overall performance of the API.
         """
-        result = db.engine.execute("""
+        result = db.engine.execute(
+            """
         select person.share_id,
                sum(amount) as total_deposits,
                count(*) as number_of_deposits
@@ -244,14 +247,18 @@ class Share(db.Model, BaseModel):
         join person on person.id = deposit.person_id
         where not (deposit.is_security or deposit.ignore)
         group by person.share_id
-""")
-        return {row.share_id: {
-                    "number_of_deposits": row.number_of_deposits,
-                    "total_deposits": row.total_deposits,
-        } for row in result}
+"""
+        )
+        return {
+            row.share_id: {
+                "number_of_deposits": row.number_of_deposits,
+                "total_deposits": row.total_deposits,
+            }
+            for row in result
+        }
 
     @staticmethod
-    def get_expected_amount_map() -> Dict[int, (Decimal or None)]:
+    def get_expected_amount_map() -> dict[int, (Decimal or None)]:
         """
         returns a dictionary in the form
         ```
@@ -262,7 +269,8 @@ class Share(db.Model, BaseModel):
         where the dictionary value is the amount of money that we
         expect this share to have paid by today.
         """
-        result = db.engine.execute("""
+        result = db.engine.execute(
+            """
         SELECT share_id,
           SUM(
             get_expected_today(bet.start_date::date,
@@ -271,14 +279,15 @@ class Share(db.Model, BaseModel):
                                )
           ) as expected_today from bet
         group by share_id;
-        """)
+        """
+        )
         return {row.share_id: row.expected_today for row in result}
 
 
 class Station(db.Model, BaseModel):
     id = db.Column(db.Integer, primary_key=True)  # pylint: disable=invalid-name
     name = db.Column(db.String(120), unique=True)
-    shares = db.relationship('Share', backref='station', lazy='dynamic')
+    shares = db.relationship("Share", backref="station", lazy="dynamic")
 
     @staticmethod
     def get_by_name(name):
@@ -288,12 +297,11 @@ class Station(db.Model, BaseModel):
 class Person(db.Model, BaseModel):
     id = db.Column(db.Integer, primary_key=True)  # pylint: disable=invalid-name
     name = db.Column(db.String(120), unique=True)
-    share_id = db.Column(db.Integer, db.ForeignKey('share.id'))
-    deposits = db.relationship('Deposit',
-                               backref='person')
+    share_id = db.Column(db.Integer, db.ForeignKey("share.id"))
+    deposits = db.relationship("Deposit", backref="person")
 
     def __repr__(self):
-        string = '<Person %s (id %i)>' % (self.name, self.id)
+        string = "<Person %s (id %i)>" % (self.name, self.id)
         return string.encode("utf-8")
 
     @staticmethod
@@ -332,10 +340,7 @@ class User(db.Model, BaseModel):
 
     @staticmethod
     def get_all_emails():
-        return db.session\
-            .query(User.email)\
-            .filter(User.active)\
-            .all()
+        return db.session.query(User.email).filter(User.active).all()
 
     @staticmethod
     def get(id):
@@ -344,10 +349,7 @@ class User(db.Model, BaseModel):
     @staticmethod
     def get_by_email(email):
         email = email.lower()
-        return db.session.query(User) \
-            .filter(User.email == email) \
-            .filter(User.active) \
-            .one_or_none()
+        return db.session.query(User).filter(User.email == email).filter(User.active).one_or_none()
 
     @hybrid_property
     def password(self):

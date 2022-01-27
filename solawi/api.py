@@ -1,23 +1,22 @@
+from decimal import Decimal
 from http import HTTPStatus
 
-from decimal import Decimal
-from flask import request, jsonify, Blueprint
-from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
+from flask import Blueprint, jsonify, request
+from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required
 from sqlalchemy.orm import joinedload
 
 from solawi import models
-from solawi.controller import merge
-from solawi.models import Share, Deposit, Person, User, Bet, Member
-
 from solawi.app import app, db
+from solawi.controller import merge
+from solawi.models import Bet, Deposit, Member, Person, Share, User
 
-api = Blueprint('api', __name__)
+api = Blueprint("api", __name__)
 
 
 @api.route("/login", methods=["POST"])
 def api_login():
-    email = request.json.get('email')
-    password = request.json.get('password')
+    email = request.json.get("email")
+    password = request.json.get("password")
     user = models.User.authenticate_and_get(email, password)
     if user:
         access_token = create_access_token(identity=email)
@@ -29,10 +28,8 @@ def api_login():
 @api.route("/shares")
 @jwt_required
 def shares_list():
-    shares = Share.query \
-        .options(joinedload(Share.bets)) \
-        .options(joinedload(Share.members)) \
-        .all()
+
+    shares = Share.query.options(joinedload(Share.bets)).options(joinedload(Share.members)).all()
     shares = [share.json for share in shares]
     return jsonify(shares=shares)
 
@@ -47,18 +44,17 @@ def share_email_list(share_id):
 @api.route("/members", methods=["GET"])
 @jwt_required
 def member_list():
-    members = db.session.query(Member)\
-        .options(joinedload(Member.share)) \
-        .all()
+
+    members = db.session.query(Member).options(joinedload(Member.share)).all()
     result = []
 
-    if request.args.get('active'):
+    if request.args.get("active"):
         members = [member for member in members if member.share.currently_active]
 
     for member in members:
         json = member.json
-        json['station_name'] = member.share.station_name if member.share else ""
-        json['join_date'] = member.share.join_date if member.share else ""
+        json["station_name"] = member.share.station_name if member.share else ""
+        json["join_date"] = member.share.join_date if member.share else ""
         result.append(json)
     return jsonify(members=result)
 
@@ -72,10 +68,9 @@ def member_create():
         share = Share()
         share.save()
         share_id = share.id
-    member = Member(name=json.get("name"),
-                    email=json.get("email"),
-                    phone=json.get("phone"),
-                    share_id=share_id)
+    member = Member(
+        name=json.get("name"), email=json.get("email"), phone=json.get("phone"), share_id=share_id
+    )
     member.save()
     return jsonify(member=member.json)
 
@@ -105,24 +100,28 @@ def member_delete(member_id):
 def get_payment_list():
     deposit_map = Share.get_deposit_map()
     expected_amount_map = Share.get_expected_amount_map()
-    shares = db.session.query(Share)\
-        .options(joinedload(Share.members)) \
-        .options(joinedload(Share.station)) \
+    shares = (
+        db.session.query(Share)
+        .options(joinedload(Share.members))
+        .options(joinedload(Share.station))
         .all()
+    )
     res = []
     for share in shares:
         deposit_details = deposit_map.get(share.id, {})
         share_payments = {
-            'id': share.id,
-            'name': share.name,
-            'total_deposits': deposit_details.get("total_deposits", 0),
-            'number_of_deposits': deposit_details.get("number_of_deposits", 0),
-            'archived': share.archived,
-            'note': share.note,
-            'station_name': share.station.name if share.station else "",
-            'expected_today': expected_amount_map.get(share.id, 0),
+            "id": share.id,
+            "name": share.name,
+            "total_deposits": deposit_details.get("total_deposits", 0),
+            "number_of_deposits": deposit_details.get("number_of_deposits", 0),
+            "archived": share.archived,
+            "note": share.note,
+            "station_name": share.station.name if share.station else "",
+            "expected_today": expected_amount_map.get(share.id, 0),
         }
-        share_payments['difference_today'] = share_payments['total_deposits'] - share_payments['expected_today']
+        share_payments["difference_today"] = (
+            share_payments["total_deposits"] - share_payments["expected_today"]
+        )
         res.append(share_payments)
     return jsonify(shares=res)
 
@@ -139,9 +138,11 @@ def bets_list():
 def shares_details(share_id):
     share = Share.get(share_id)
     dict_share = share.json
-    dict_share['expected_today'] = share.expected_today
-    dict_share['total_deposits'] = share.total_deposits or 0
-    dict_share['difference_today'] = - (Decimal(dict_share['expected_today']) - dict_share['total_deposits'])
+    dict_share["expected_today"] = share.expected_today
+    dict_share["total_deposits"] = share.total_deposits or 0
+    dict_share["difference_today"] = -(
+        Decimal(dict_share["expected_today"]) - dict_share["total_deposits"]
+    )
     return jsonify(share=dict_share)
 
 
@@ -244,9 +245,9 @@ def merge_shares():
     share1 = json.get("share1")
     share2 = json.get("share2")
     if not share1 or not share2:
-        return jsonify(message='You need to supply share1 and share2'), 400
+        return jsonify(message="You need to supply share1 and share2"), 400
     merge(share1, share2)
-    return jsonify(message='success')
+    return jsonify(message="success")
 
 
 @api.route("/person/<int:person_id>", methods=["GET"])
@@ -283,4 +284,4 @@ def modify_user(id):
     return jsonify(user=user.json)
 
 
-app.register_blueprint(api, url_prefix='/api/v1')
+app.register_blueprint(api, url_prefix="/api/v1")

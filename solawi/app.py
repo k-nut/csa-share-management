@@ -1,23 +1,22 @@
+import logging
 import os
 import sys
-import logging
-
 from datetime import date
+
 from flask import Flask
-from flask.json import JSONEncoder
 from flask_bcrypt import Bcrypt
-from flask_jwt_extended import JWTManager
-from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
+from flask_jwt_extended import JWTManager
 from flask_migrate import Migrate
+from flask_sqlalchemy import SQLAlchemy
 from raven.contrib.flask import Sentry
 from simplejson import JSONEncoder
 
-secret_key = os.environ.get('SECRET_KEY')
+secret_key = os.environ.get("SECRET_KEY")
 if secret_key is None:
     raise Exception("You must supply the `SECRET_KEY` environment variable.")
 
-db_url = os.environ.get('DATABASE_URL')
+db_url = os.environ.get("DATABASE_URL")
 if db_url is None:
     raise Exception("You must supply the `DATABASE_URL` environment variable.")
 if "postgres://" in db_url:
@@ -27,14 +26,14 @@ if "postgres://" in db_url:
     db_url = db_url.replace("postgres://", "postgresql://")
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = db_url
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SECRET_KEY'] = secret_key
-app.config['JWT_ACCESS_TOKEN_EXPIRES'] = 60 * 60
+app.config["SQLALCHEMY_DATABASE_URI"] = db_url
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+app.config["SECRET_KEY"] = secret_key
+app.config["JWT_ACCESS_TOKEN_EXPIRES"] = 60 * 60
 app.debug = os.environ.get("DEBUG", False)
 app.logger.addHandler(logging.StreamHandler(sys.stdout))
 app.logger.setLevel(logging.ERROR)
-app.json_encoder = JSONEncoder # For automatic Decimal support
+app.json_encoder = JSONEncoder  # For automatic Decimal support
 
 jwt = JWTManager(app)
 
@@ -56,6 +55,7 @@ class CustomJSONEncoder(JSONEncoder):
             return list(iterable)
         return JSONEncoder.default(self, obj)
 
+
 app.json_encoder = CustomJSONEncoder
 
 db = SQLAlchemy(app)
@@ -63,5 +63,5 @@ bcrypt = Bcrypt(app)
 migrate = Migrate(app, db)
 
 
-import solawi.api
-import solawi.commands
+import solawi.api  # noqa:E402,F401
+import solawi.commands  # noqa:E402,F401
