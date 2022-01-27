@@ -3,7 +3,7 @@ on:
   push:
     branches:
       - master
-    pull_request:
+  pull_request:
 env:
   PYTHON_VERSION: 3.9.9
 jobs:
@@ -16,6 +16,14 @@ jobs:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: password
           POSTGRES_DB: solawi
+        # Set health checks to wait until postgres has started
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
     steps:
       - uses: actions/checkout@v2.4.0
 
@@ -32,4 +40,5 @@ jobs:
         env:
           DATABASE_URL: postgresql://postgres:password@localhost/solawi
           DATABASE_URL_TEST: postgresql://postgres:password@localhost/solawi
+          SECRET_KEY: required_but_unused_in_test
       - run: codecov
