@@ -142,13 +142,14 @@ class AuthorizedViewsTests(AuthorizedTest):
     def test_create_member(self):
         member1 = MemberFactory.create(name="Paul Wild / Paula Wilder")
         share = ShareFactory.create(members=[member1])
+        share_id = share.id
 
         self.assertEqual(len(share.members), 1)
 
-        new_member_json = {"name": "Paul Wild", "share_id": share.id}
+        new_member_json = {"name": "Paul Wild", "share_id": share_id}
         response = self.app.post("/api/v1/members", json=new_member_json)
 
-        updated_share = Share.get(share.id)
+        updated_share = Share.get(share_id)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(updated_share.members), 2)
 
