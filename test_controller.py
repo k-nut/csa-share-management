@@ -1,8 +1,7 @@
-from test_factories import ShareFactory, MemberFactory, BetFactory, StationFactory
-from test_helpers import DBTest
-
-from solawi.models import Share, Bet, Member
+from test_factories import BetFactory, MemberFactory, ShareFactory, StationFactory  # isort:skip
 from solawi.controller import merge
+from solawi.models import Bet, Member, Share
+from test_helpers import DBTest
 
 
 class TestController(DBTest):
@@ -42,7 +41,6 @@ class TestController(DBTest):
         BetFactory.create(share=share1)
         BetFactory.create(share=share1)
         BetFactory.create(share=share2)
-
 
         assert Share.query.count() == 2
         assert Bet.query.count() == 3

@@ -1,0 +1,50 @@
+name: Linters
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+env:
+  PYTHON_VERSION: 3.9.9
+jobs:
+  black:
+    runs-on: ubuntu-latest
+    steps:
+        - uses: actions/checkout@v2.4.0
+
+        - name: Set up Python ${{ env.PYTHON_VERSION }}
+          uses: actions/setup-python@v2.3.1
+          with:
+            python-version: ${{ env.PYTHON_VERSION }}
+            cache: 'pip'
+
+        - run: pip install black
+        - run: black --check .
+
+  isort:
+    runs-on: ubuntu-latest
+    steps:
+        - uses: actions/checkout@v2.4.0
+
+        - name: Set up Python ${{ env.PYTHON_VERSION }}
+          uses: actions/setup-python@v2.3.1
+          with:
+            python-version: ${{ env.PYTHON_VERSION }}
+            cache: 'pip'
+
+        - run: pip install isort
+        - run: isort --check .
+
+  flake8:
+    runs-on: ubuntu-latest
+    steps:
+        - uses: actions/checkout@v2.4.0
+
+        - name: Set up Python ${{ env.PYTHON_VERSION }}
+          uses: actions/setup-python@v2.3.1
+          with:
+            python-version: ${{ env.PYTHON_VERSION }}
+            cache: 'pip'
+
+        - run: pip install flake8
+        - run: flake8 .

@@ -1,19 +1,24 @@
-from datetime import date, datetime, timedelta
+from datetime import date, datetime
 from unittest.mock import patch
 
-from flask import Response
-from solawi.app import db, app
-from solawi.models import Member, Share, Bet
-from test_factories import ShareFactory, BetFactory, MemberFactory, StationFactory, UserFactory, DepositFactory, \
-    PersonFactory
-from test_helpers import DBTest, AuthorizedTest
 from flask_jwt_extended import create_access_token
+
+from solawi.app import app, db
+from solawi.models import Bet, Member, Share, User
+from test_factories import (
+    BetFactory,
+    DepositFactory,
+    MemberFactory,
+    PersonFactory,
+    ShareFactory,
+    StationFactory,
+    UserFactory,
+)
+from test_helpers import AuthorizedTest, DBTest
 
 
 class AuthorizedViewsTests(AuthorizedTest):
     def test_delete_bet(self):
-        from solawi.models import Bet, Share
-
         bet = BetFactory.create()
         share = bet.share
 
@@ -25,8 +30,6 @@ class AuthorizedViewsTests(AuthorizedTest):
         self.assertEqual(db.session.query(Bet).count(), 0)
 
     def test_delete_bet_unkown_bet(self):
-        from solawi.models import Bet, Share
-
         bet = BetFactory.create()
         share = bet.share
 
@@ -37,11 +40,9 @@ class AuthorizedViewsTests(AuthorizedTest):
         self.assertEqual(response.status_code, 404)
 
     def test_add_share(self):
-        from solawi.models import Share
-
         self.assertEqual(db.session.query(Share).count(), 0)
 
-        response = self.app.post(f"/api/v1/shares", json={"note": "my note"})
+        response = self.app.post("/api/v1/shares", json={"note": "my note"})
 
         self.assertEqual(response.status_code, 201)
         self.assertEqual(db.session.query(Share).count(), 1)
@@ -50,31 +51,29 @@ class AuthorizedViewsTests(AuthorizedTest):
     def test_share_emails_empty(self):
         share = ShareFactory.create()
 
-        response: Response = self.app.get(f"/api/v1/shares/{share.id}/emails")
+        response = self.app.get(f"/api/v1/shares/{share.id}/emails")
 
         self.assertEqual(response.status_code, 200)
-        self.assertEquals(response.json, {"emails": []})
+        self.assertEqual(response.json, {"emails": []})
 
     def test_share_emails(self):
         member = MemberFactory.create(email="test@example.org")
         share = ShareFactory.create(members=[member])
 
-        response: Response = self.app.get(f"/api/v1/shares/{share.id}/emails")
+        response = self.app.get(f"/api/v1/shares/{share.id}/emails")
         expected = ["test@example.org"]
 
         self.assertEqual(response.status_code, 200)
-        self.assertEquals(response.json, {"emails": expected})
+        self.assertEqual(response.json, {"emails": expected})
 
     def test_members(self):
-        member1 = MemberFactory.create(email="peter@example.org",
-                                       name="Peter Farmer",
-                                       phone="001234")
-        member2 = MemberFactory.create(email="paula@example.org",
-                                       name="Paula Farmer",
-                                       phone="001234")
-        member3 = MemberFactory.create(email="jane@example.org",
-                                       name="Jane Doe",
-                                       phone="0055689")
+        member1 = MemberFactory.create(
+            email="peter@example.org", name="Peter Farmer", phone="001234"
+        )
+        member2 = MemberFactory.create(
+            email="paula@example.org", name="Paula Farmer", phone="001234"
+        )
+        member3 = MemberFactory.create(email="jane@example.org", name="Jane Doe", phone="0055689")
 
         station1 = StationFactory.create(name="Station 1")
         station2 = StationFactory.create(name="Station 2")
@@ -94,7 +93,7 @@ class AuthorizedViewsTests(AuthorizedTest):
                 "phone": "001234",
                 "share_id": share1.id,
                 "station_name": "Station 1",
-                "join_date": "2018-01-01T00:00:00"
+                "join_date": "2018-01-01T00:00:00",
             },
             {
                 "email": "paula@example.org",
@@ -103,7 +102,7 @@ class AuthorizedViewsTests(AuthorizedTest):
                 "phone": "001234",
                 "share_id": share1.id,
                 "station_name": "Station 1",
-                "join_date": "2018-01-01T00:00:00"
+                "join_date": "2018-01-01T00:00:00",
             },
             {
                 "email": "jane@example.org",
@@ -112,11 +111,11 @@ class AuthorizedViewsTests(AuthorizedTest):
                 "phone": "0055689",
                 "share_id": share2.id,
                 "station_name": "Station 2",
-                "join_date": "2019-01-15T00:00:00"
-            }
+                "join_date": "2019-01-15T00:00:00",
+            },
         ]
 
-        response: Response = self.app.get(f"/api/v1/members")
+        response = self.app.get("/api/v1/members")
 
         self.assertEqual(response.status_code, 200)
         self.maxDiff = None
@@ -135,7 +134,7 @@ class AuthorizedViewsTests(AuthorizedTest):
         ShareFactory.create(members=[member1], station=station1, bets=[expired_bet])
         ShareFactory.create(members=[member2], station=station2, bets=[valid_bet])
 
-        response: Response = self.app.get(f"/api/v1/members?active=true")
+        response = self.app.get("/api/v1/members?active=true")
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.json["members"]), 1)
@@ -147,7 +146,7 @@ class AuthorizedViewsTests(AuthorizedTest):
         self.assertEqual(len(share.members), 1)
 
         new_member_json = {"name": "Paul Wild", "share_id": share.id}
-        response: Response = self.app.post(f"/api/v1/members", json=new_member_json)
+        response = self.app.post("/api/v1/members", json=new_member_json)
 
         updated_share = Share.get(share.id)
         self.assertEqual(response.status_code, 200)
@@ -158,7 +157,7 @@ class AuthorizedViewsTests(AuthorizedTest):
         self.assertEqual(Share.query.count(), 0)
 
         new_member_json = {"name": "Paul Wild", "email": "paul@example.org", "phone": "0123"}
-        response: Response = self.app.post(f"/api/v1/members", json=new_member_json)
+        response = self.app.post("/api/v1/members", json=new_member_json)
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(Member.query.count(), 1)
@@ -168,7 +167,7 @@ class AuthorizedViewsTests(AuthorizedTest):
         member = MemberFactory.create(name="Paul Wild / Paula Wilder")
 
         new_member_json = {"name": "Paul Wild"}
-        response: Response = self.app.patch(f"/api/v1/members/{member.id}", json=new_member_json)
+        response = self.app.patch(f"/api/v1/members/{member.id}", json=new_member_json)
 
         updated_member = Member.get(member.id)
 
@@ -181,7 +180,7 @@ class AuthorizedViewsTests(AuthorizedTest):
 
         self.assertEqual(Member.query.count(), 1)
 
-        response: Response = self.app.delete(f"/api/v1/members/{member.id}")
+        response = self.app.delete(f"/api/v1/members/{member.id}")
 
         self.assertEqual(response.status_code, 204)
         self.assertEqual(Member.query.count(), 0)
@@ -189,8 +188,6 @@ class AuthorizedViewsTests(AuthorizedTest):
 
 class UnAuthorizedViewsTests(DBTest):
     def test_delete_bet_required_auth(self):
-        from solawi.models import Bet, Share
-
         bet: Bet = BetFactory.create()
         share = bet.share
 
@@ -202,41 +199,47 @@ class UnAuthorizedViewsTests(DBTest):
         self.assertEqual(db.session.query(Bet).count(), 1)
 
     def test_add_share_unauthorized(self):
-        from solawi.models import Share
-
         self.assertEqual(db.session.query(Share).count(), 0)
 
-        response = self.app.post(f"/api/v1/shares", json={"note": "my note"})
+        response = self.app.post("/api/v1/shares", json={"note": "my note"})
 
         self.assertEqual(response.status_code, 401)
         self.assertEqual(db.session.query(Share).count(), 0)
 
     def test_login_success(self):
-        UserFactory.create(email='user@example.org', password="supersecret")
+        UserFactory.create(email="user@example.org", password="supersecret")
 
-        response = self.app.post(f"/api/v1/login", json={"email": "user@example.org", "password": "supersecret"})
+        response = self.app.post(
+            "/api/v1/login", json={"email": "user@example.org", "password": "supersecret"}
+        )
 
         self.assertEqual(response.status_code, 200)
-        self.assertTrue(len(response.json['access_token']) > 1)
+        self.assertTrue(len(response.json["access_token"]) > 1)
 
     def test_login_no_user(self):
-        response = self.app.post(f"/api/v1/login", json={"email": "myuser@example.org", "password": "hunter2"})
+        response = self.app.post(
+            "/api/v1/login", json={"email": "myuser@example.org", "password": "hunter2"}
+        )
 
         self.assertEqual(response.status_code, 401)
         self.assertEqual(response.json, {"message": "login failed"})
 
     def test_login_wrong_password(self):
-        UserFactory.create(email='user@example.org', password="supersecret")
+        UserFactory.create(email="user@example.org", password="supersecret")
 
-        response = self.app.post(f"/api/v1/login", json={"email": "user@example.org", "password": "hunter2"})
+        response = self.app.post(
+            "/api/v1/login", json={"email": "user@example.org", "password": "hunter2"}
+        )
 
         self.assertEqual(response.status_code, 401)
         self.assertEqual(response.json, {"message": "login failed"})
 
     def test_login_not_active(self):
-        UserFactory.create(email='user@example.org', password="supersecret", active=False)
+        UserFactory.create(email="user@example.org", password="supersecret", active=False)
 
-        response = self.app.post(f"/api/v1/login", json={"email": "user@example.org", "password": "supersecret"})
+        response = self.app.post(
+            "/api/v1/login", json={"email": "user@example.org", "password": "supersecret"}
+        )
 
         self.assertEqual(response.status_code, 401)
         self.assertEqual(response.json, {"message": "login failed"})
@@ -246,24 +249,24 @@ class UserManagementViewsTests(DBTest):
     def _login_as_user(self, user):
         self.app = app.test_client()
         with app.app_context():
-            self.app.environ_base['HTTP_AUTHORIZATION'] = f'Bearer {create_access_token(identity=user.email)}'
+            self.app.environ_base[
+                "HTTP_AUTHORIZATION"
+            ] = f"Bearer {create_access_token(identity=user.email)}"
 
     def test_modify_user(self):
-        from solawi.models import User
-
-        user: User = UserFactory.create(password='hunter2')
+        user: User = UserFactory.create(password="hunter2")
         self._login_as_user(user)
-        response = self.app.patch(f"/api/v1/users/{user.id}", json={"password": "a-password-of-appropriate-length"})
+        response = self.app.patch(
+            f"/api/v1/users/{user.id}", json={"password": "a-password-of-appropriate-length"}
+        )
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json, {"user": user.json})
         updated_user = User.get(user.id)
-        self.assertTrue(updated_user.check_password('a-password-of-appropriate-length'))
+        self.assertTrue(updated_user.check_password("a-password-of-appropriate-length"))
 
     def test_modify_user_requires_password(self):
-        from solawi.models import User
-
-        user: User = UserFactory.create(password='hunter2')
+        user: User = UserFactory.create(password="hunter2")
         self._login_as_user(user)
 
         response = self.app.patch(f"/api/v1/users/{user.id}")
@@ -271,56 +274,56 @@ class UserManagementViewsTests(DBTest):
         self.assertEqual(response.status_code, 400)
 
     def test_modify_fails_if_too_short(self):
-        from solawi.models import User
-
-        user: User = UserFactory.create(email='user@example.org', password='hunter2')
+        user: User = UserFactory.create(email="user@example.org", password="hunter2")
         self._login_as_user(user)
 
         response = self.app.patch(f"/api/v1/users/{user.id}", json={"password": "tooshort"})
 
         self.assertEqual(response.status_code, 400)
-        self.assertEqual(response.json, {'message': 'Password must be at least 14 characters long'})
+        self.assertEqual(response.json, {"message": "Password must be at least 14 characters long"})
 
         updated_user = User.get(user.id)
-        self.assertTrue(updated_user.check_password('hunter2'))  # did not change own user
+        self.assertTrue(updated_user.check_password("hunter2"))  # did not change own user
 
     def test_modify_other_user_fails(self):
-        from solawi.models import User
-
-        user: User = UserFactory.create(email='user@example.org', password='hunter2')
-        another_user: User = UserFactory.create(password='supersecret', email='other@example.org')
+        user: User = UserFactory.create(email="user@example.org", password="hunter2")
+        another_user: User = UserFactory.create(password="supersecret", email="other@example.org")
         another_user_id = another_user.id
         self._login_as_user(user)
 
-        response = self.app.patch(f"/api/v1/users/{another_user_id}",
-                                  json={"password": "a-password-of-appropriate-length"})
+        response = self.app.patch(
+            f"/api/v1/users/{another_user_id}",
+            json={"password": "a-password-of-appropriate-length"},
+        )
 
         self.assertEqual(response.status_code, 403)
 
         updated_user = User.get(user.id)
-        self.assertTrue(updated_user.check_password('hunter2'))  # did not change own user
+        self.assertTrue(updated_user.check_password("hunter2"))  # did not change own user
         updated_other_user = User.get(another_user_id)
-        self.assertTrue(updated_other_user.check_password('supersecret'))  # did not change other user
+        self.assertTrue(
+            updated_other_user.check_password("supersecret")
+        )  # did not change other user
 
     def test_modify_user_fails_for_unknown_user(self):
-        from solawi.models import User
-
-        user: User = UserFactory.create(password='hunter2')
+        user: User = UserFactory.create(password="hunter2")
         self._login_as_user(user)
 
-        response = self.app.patch(f"/api/v1/users/9001", json={"password": "a-password-of-appropriate-length"})
+        response = self.app.patch(
+            "/api/v1/users/9001", json={"password": "a-password-of-appropriate-length"}
+        )
 
         self.assertEqual(response.status_code, 403)
 
     def test_modify_user_updates_last_changed_date(self):
-        from solawi.models import User
-
-        user: User = UserFactory.create(password='hunter2')
+        user: User = UserFactory.create(password="hunter2")
         self._login_as_user(user)
 
-        with patch('solawi.models.date') as mock_date:
+        with patch("solawi.models.date") as mock_date:
             mock_date.today.return_value = date(2017, 3, 31)
-            response = self.app.patch(f"/api/v1/users/{user.id}", json={"password": "a-password-of-appropriate-length"})
+            response = self.app.patch(
+                f"/api/v1/users/{user.id}", json={"password": "a-password-of-appropriate-length"}
+            )
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json, {"user": user.json})
@@ -336,28 +339,44 @@ class SharesTests(AuthorizedTest):
 
         BetFactory.create(value=102)
 
-        response = self.app.get(f"/api/v1/shares")
+        response = self.app.get("/api/v1/shares")
 
-        expected = {'shares': [{'archived': False,
-                                'bets': [{'end_date': None,
-                                          'id': 1,
-                                          'share_id': 1,
-                                          'start_date': '2018-01-01T00:00:00',
-                                          'value': 99}],
-                                'id': 1,
-                                'name': 'Sarah Foe & Tom Doe',
-                                'note': None,
-                                'station_id': 1},
-                               {'archived': False,
-                                'bets': [{'end_date': None,
-                                          'id': 2,
-                                          'share_id': 2,
-                                          'start_date': '2018-01-01T00:00:00',
-                                          'value': 102}],
-                                'id': 2,
-                                'name': '',
-                                'note': None,
-                                'station_id': 2}]}
+        expected = {
+            "shares": [
+                {
+                    "archived": False,
+                    "bets": [
+                        {
+                            "end_date": None,
+                            "id": 1,
+                            "share_id": 1,
+                            "start_date": "2018-01-01T00:00:00",
+                            "value": 99,
+                        }
+                    ],
+                    "id": 1,
+                    "name": "Sarah Foe & Tom Doe",
+                    "note": None,
+                    "station_id": 1,
+                },
+                {
+                    "archived": False,
+                    "bets": [
+                        {
+                            "end_date": None,
+                            "id": 2,
+                            "share_id": 2,
+                            "start_date": "2018-01-01T00:00:00",
+                            "value": 102,
+                        }
+                    ],
+                    "id": 2,
+                    "name": "",
+                    "note": None,
+                    "station_id": 2,
+                },
+            ]
+        }
 
         self.assertEqual(response.status_code, 200)
 
@@ -371,21 +390,29 @@ class PaymentStatusTests(AuthorizedTest):
         # This should only be for the api
         station = StationFactory.create(name="Our Station")
         share = ShareFactory.create(station=station)
-        bet = BetFactory.create(value=99, start_date=date(2019, 1, 1), end_date=date(2019, 2, 1), share=share)
+        bet = BetFactory.create(
+            value=99, start_date=date(2019, 1, 1), end_date=date(2019, 2, 1), share=share
+        )
         person = PersonFactory.create(share=bet.share)
         DepositFactory.create(person=person, amount=99)
 
-        response = self.app.get(f"/api/v1/shares/payment_status")
+        response = self.app.get("/api/v1/shares/payment_status")
 
-        expected = {'shares': [{'archived': False,
-                                'difference_today': 0,
-                                'expected_today': 99,
-                                'id': 1,
-                                'name': '',
-                                'note': None,
-                                'number_of_deposits': 1,
-                                'station_name': "Our Station",
-                                'total_deposits': 99.0}]}
+        expected = {
+            "shares": [
+                {
+                    "archived": False,
+                    "difference_today": 0,
+                    "expected_today": 99,
+                    "id": 1,
+                    "name": "",
+                    "note": None,
+                    "number_of_deposits": 1,
+                    "station_name": "Our Station",
+                    "total_deposits": 99.0,
+                }
+            ]
+        }
 
         self.assertEqual(response.status_code, 200)
 
@@ -398,15 +425,19 @@ class ShareDetailsTests(AuthorizedTest):
 
         response = self.app.get(f"/api/v1/shares/{share.id}")
 
-        expected = {'share': {'archived': False,
-                              'bets': [],
-                              'difference_today': 0,
-                              'expected_today': 0,
-                              'id': 1,
-                              'name': '',
-                              'note': None,
-                              'station_id': 1,
-                              'total_deposits': 0}}
+        expected = {
+            "share": {
+                "archived": False,
+                "bets": [],
+                "difference_today": 0,
+                "expected_today": 0,
+                "id": 1,
+                "name": "",
+                "note": None,
+                "station_id": 1,
+                "total_deposits": 0,
+            }
+        }
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json, expected)
@@ -417,7 +448,9 @@ class BetDetailsTests(AuthorizedTest):
         share = ShareFactory.create()
         self.assertEqual(db.session.query(Bet).count(), 0)
 
-        response = self.app.post(f"/api/v1/shares/{share.id}/bets", json={"value": "99", "start_date": "2019-01-01"})
+        response = self.app.post(
+            f"/api/v1/shares/{share.id}/bets", json={"value": "99", "start_date": "2019-01-01"}
+        )
 
         bet = db.session.query(Bet).first()
         self.assertEqual(response.status_code, 200)
@@ -429,7 +462,9 @@ class BetDetailsTests(AuthorizedTest):
     def test_edit_bet(self):
         bet = BetFactory.create(value=20)
 
-        response = self.app.post(f"/api/v1/shares/{bet.share.id}/bets", json={"id": bet.id, "value": "99"})
+        response = self.app.post(
+            f"/api/v1/shares/{bet.share.id}/bets", json={"id": bet.id, "value": "99"}
+        )
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(db.session.query(Bet).count(), 1)
