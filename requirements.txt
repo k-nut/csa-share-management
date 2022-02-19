@@ -11,7 +11,7 @@ freezegun==0.3.9
 pytest==3.6.3
 pytest-cov==2.5.1
 pytest-watch==3.10.0
-psycopg2==2.8.6
+psycopg2==2.9.3
 raven[flask]
 simplejson==3.12.0 # for Decimal support in jsonify
 
