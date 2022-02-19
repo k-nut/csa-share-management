@@ -8,3 +8,38 @@ profile = "black"
 py_version = 39
 line_length = 100
 skip_glob = "/migrations/*"
+
+[tool.poetry]
+name = "csa-share-management"
+version = "0.1.0"
+description = "Small internal tool for managing monthly deposits in a community supported agriculture group"
+authors = ["Knut Hühne <knut@k-nut.eu>"]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+alembic = "0.8.6"
+Flask = "1.1.4"
+Flask-Bcrypt = "0.7.1"
+Flask-Cors = "3.0.9"
+Flask-JWT-Extended = "3.25.0"
+Flask-Migrate = "2.1.1"
+Flask-SQLAlchemy = "2.5.1"
+raven = {extras = ["flask"], version = "^6.10.0"}
+psycopg2 = "2.9.3"
+simplejson = "3.12.0"
+fints = "3.0.1"
+gevent = "20.12.1"
+gunicorn = "20.0.4"
+MarkupSafe = "2.0.1"
+
+[tool.poetry.dev-dependencies]
+pytest = "3.6.3"
+factory-boy = "2.11.1"
+pytest-cov = "2.5.1"
+pytest-watch = "3.10.0"
+isort = "*"
+flake8 = "*"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
