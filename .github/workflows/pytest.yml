@@ -31,14 +31,27 @@ jobs:
         uses: actions/setup-python@v2.3.2
         with:
           python-version: ${{ env.PYTHON_VERSION }}
-          cache: 'pip'
-      - run: |
-          pip install -r requirements.txt
-          pip install codecov
 
-      - run: pytest --cov=./
+      - name: Setup poetry
+        uses: Gr1N/setup-poetry@v7
+
+      - name: Setup cache
+        uses: actions/cache@v2.1.7
+        with:
+          path: ~/.cache/pypoetry/virtualenvs
+          key: venv-${{ runner.os }}-${{ env.PYTHON_VERSION }}-${{ hashFiles('**/poetry.lock') }}
+
+      - name: Install dependencies with Poetry
+        run: |
+          poetry install
+
+      - run: |
+          poetry run pip install codecov
+
+      - run: poetry run pytest --cov=./
         env:
           DATABASE_URL: postgresql://postgres:password@localhost/solawi
           DATABASE_URL_TEST: postgresql://postgres:password@localhost/solawi
           SECRET_KEY: required_but_unused_in_test
-      - run: codecov
+
+      - run: poetry run codecov
