@@ -3,13 +3,15 @@ import os
 import sys
 from datetime import date
 
+import sentry_sdk
 from flask import Flask
 from flask_bcrypt import Bcrypt
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
-from raven.contrib.flask import Sentry
+from sentry_sdk.integrations.flask import FlaskIntegration
+from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
 from simplejson import JSONEncoder
 
 secret_key = os.environ.get("SECRET_KEY")
@@ -25,6 +27,12 @@ if "postgres://" in db_url:
     # which is why we re-write it to match what SQLAlchemy expects.
     db_url = db_url.replace("postgres://", "postgresql://")
 
+sentry_sdk.init(
+    dsn=os.environ.get("SENTRY_DSN"),
+    integrations=[FlaskIntegration(), SqlalchemyIntegration()],
+    traces_sample_rate=0.6,
+)
+
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = db_url
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
@@ -36,8 +44,6 @@ app.logger.setLevel(logging.ERROR)
 app.json_encoder = JSONEncoder  # For automatic Decimal support
 
 jwt = JWTManager(app)
-
-sentry = Sentry(app)
 
 
 CORS(app, supports_credentials=True)
