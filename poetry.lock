@@ -553,7 +553,7 @@ testing = ["fields", "hunter", "process-tests", "six", "pytest-xdist", "virtuale
 
 [[package]]
 name = "pytest-watch"
-version = "3.10.0"
+version = "4.2.0"
 description = "Local continuous test runner with pytest and watchdog."
 category = "dev"
 optional = false
@@ -561,7 +561,7 @@ python-versions = "*"
 
 [package.dependencies]
 colorama = ">=0.3.3"
-docopt = ">=0.6.2"
+docopt = ">=0.4.0"
 pytest = ">=2.6.4"
 watchdog = ">=0.6.0"
 
@@ -1215,7 +1215,7 @@ pytest-cov = [
     {file = "pytest_cov-3.0.0-py3-none-any.whl", hash = "sha256:578d5d15ac4a25e5f961c938b85a05b09fdaae9deef3bb6de9a6e766622ca7a6"},
 ]
 pytest-watch = [
-    {file = "pytest-watch-3.10.0.zip", hash = "sha256:3194c280a4252217021000554273ff9b2d074138ccbc5d15fec2f2c0ce0b8cb1"},
+    {file = "pytest-watch-4.2.0.tar.gz", hash = "sha256:06136f03d5b361718b8d0d234042f7b2f203910d8568f63df2f866b547b3d4b9"},
 ]
 python-dateutil = [
     {file = "python-dateutil-2.8.2.tar.gz", hash = "sha256:0123cacc1627ae19ddf3c27a5de5bd67ee4586fbdd6440d9748f8abb483d3e86"},
