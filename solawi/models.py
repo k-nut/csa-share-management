@@ -83,10 +83,10 @@ class Deposit(db.Model, BaseModel):
 
 class Bet(db.Model, BaseModel):
     id = db.Column(db.Integer, primary_key=True)  # pylint: disable=invalid-name
-    value = db.Column(db.Numeric)
-    start_date = db.Column(db.DateTime, default=datetime.date(2017, 5, 1))
+    value = db.Column(db.Numeric, nullable=False)
+    start_date = db.Column(db.DateTime, nullable=False)
     end_date = db.Column(db.DateTime)
-    share_id = db.Column(db.Integer, db.ForeignKey("share.id"))
+    share_id = db.Column(db.Integer, db.ForeignKey("share.id"), nullable=False)
 
     @property
     def currently_active(self):
