@@ -29,6 +29,7 @@ fints = "3.0.1"
 gevent = "*"
 gunicorn = "*"
 sentry-sdk = {extras = ["flask", "sqlalchemy"], version = "*"}
+python-dateutil = "*"
 
 [tool.poetry.dev-dependencies]
 pytest = "*"

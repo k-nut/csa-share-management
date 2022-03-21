@@ -573,7 +573,7 @@ watchdog = ">=0.6.0"
 name = "python-dateutil"
 version = "2.8.2"
 description = "Extensions to the standard Python datetime module"
-category = "dev"
+category = "main"
 optional = false
 python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,>=2.7"
 
@@ -794,7 +794,7 @@ testing = ["coverage (>=5.0.3)", "zope.event", "zope.testing"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "90c33befb2d40f9281506c0220e1d14970e70b4a1951a9f49e2dee102a2e8f51"
+content-hash = "14473672a776e767e216eb50109c21f75e50f5690c9606ee3bc88c2619f25dac"
 
 [metadata.files]
 alembic = [
