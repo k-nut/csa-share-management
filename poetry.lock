@@ -228,14 +228,14 @@ dotenv = ["python-dotenv"]
 
 [[package]]
 name = "flask-bcrypt"
-version = "0.7.1"
+version = "1.0.0"
 description = "Brcrypt hashing for Flask."
 category = "main"
 optional = false
 python-versions = "*"
 
 [package.dependencies]
-bcrypt = "*"
+bcrypt = ">=3.1.1"
 Flask = "*"
 
 [[package]]
@@ -996,7 +996,8 @@ flask = [
     {file = "Flask-2.1.1.tar.gz", hash = "sha256:a8c9bd3e558ec99646d177a9739c41df1ded0629480b4c8d2975412f3c9519c8"},
 ]
 flask-bcrypt = [
-    {file = "Flask-Bcrypt-0.7.1.tar.gz", hash = "sha256:d71c8585b2ee1c62024392ebdbc447438564e2c8c02b4e57b56a4cafd8d13c5f"},
+    {file = "Flask-Bcrypt-1.0.0.tar.gz", hash = "sha256:e622fbd3b0bf63d516b8844fe3431fc30213592412b430036c3928a0c52dfb27"},
+    {file = "Flask_Bcrypt-1.0.0-py3-none-any.whl", hash = "sha256:64a947e15ff06823c3843f4826d4548dfae038c7df8f98ea82755db62092ec4c"},
 ]
 flask-cors = [
     {file = "Flask-Cors-3.0.10.tar.gz", hash = "sha256:b60839393f3b84a0f3746f6cdca56c1ad7426aa738b70d6c61375857823181de"},
