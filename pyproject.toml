@@ -30,6 +30,7 @@ gevent = "*"
 gunicorn = "*"
 sentry-sdk = {extras = ["flask", "sqlalchemy"], version = "*"}
 python-dateutil = "*"
+Flask-Pydantic = "*"
 
 [tool.poetry.dev-dependencies]
 pytest = "*"

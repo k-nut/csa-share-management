@@ -1,8 +1,14 @@
+from datetime import date
 from decimal import Decimal
 from http import HTTPStatus
+from typing import Optional
 
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required
+from flask_pydantic import validate
+from pydantic import Extra
+from pydantic.main import BaseModel
+from pydantic.types import constr
 from sqlalchemy.orm import joinedload
 
 from solawi import models
@@ -13,10 +19,16 @@ from solawi.models import Bet, Deposit, Member, Person, Share, User
 api = Blueprint("api", __name__)
 
 
+class LoginSchema(BaseModel):
+    email: str
+    password: str
+
+
 @api.route("/login", methods=["POST"])
-def api_login():
-    email = request.json.get("email")
-    password = request.json.get("password")
+@validate()
+def api_login(body: LoginSchema):
+    email = body.email
+    password = body.password
     user = models.User.authenticate_and_get(email, password)
     if user:
         access_token = create_access_token(identity=email)
@@ -28,7 +40,6 @@ def api_login():
 @api.route("/shares")
 @jwt_required()
 def shares_list():
-
     shares = Share.query.options(joinedload(Share.bets)).options(joinedload(Share.members)).all()
     shares = [share.json for share in shares]
     return jsonify(shares=shares)
@@ -36,7 +47,7 @@ def shares_list():
 
 @api.route("/shares/<int:share_id>/emails")
 @jwt_required()
-def share_email_list(share_id):
+def share_email_list(share_id: int):
     share = Share.get(share_id)
     return jsonify(emails=[member.email for member in share.members])
 
@@ -44,7 +55,6 @@ def share_email_list(share_id):
 @api.route("/members", methods=["GET"])
 @jwt_required()
 def member_list():
-
     members = db.session.query(Member).options(joinedload(Member.share)).all()
     result = []
 
@@ -59,37 +69,47 @@ def member_list():
     return jsonify(members=result)
 
 
+class MemberSchema(BaseModel, extra=Extra.forbid):
+    name: str
+    share_id: Optional[int]
+    email: Optional[str]
+    phone: Optional[str]
+
+
 @api.route("/members", methods=["POST"])
 @jwt_required()
-def member_create():
-    json = request.get_json()
-    share_id = json.get("share_id")
+@validate()
+def post_member(body: MemberSchema):
+    share_id = body.share_id
     if not share_id:
         share = Share()
         share.save()
         share_id = share.id
-    member = Member(
-        name=json.get("name"), email=json.get("email"), phone=json.get("phone"), share_id=share_id
-    )
+    member = Member(name=body.name, email=body.email, phone=body.phone, share_id=share_id)
     member.save()
     return jsonify(member=member.json)
 
 
-@api.route("/members/<int:member_id>", methods=["PUT", "PATCH"])
+class MemberPatchSchema(MemberSchema):
+    name: Optional[str]
+
+
+@api.route("/members/<int:member_id>", methods=["PATCH"])
 @jwt_required()
-def member_edit(member_id):
+@validate()
+def patch_member(body: MemberPatchSchema, member_id: int):
     member = Member.get(member_id)
-    json = request.get_json()
-    for field in ["name", "share_id", "email", "phone"]:
-        if field in json:
-            setattr(member, field, json.get(field))
+    json = body.dict()
+    for key, value in json.items():
+        if value is not None:
+            setattr(member, key, value)
     member.save()
     return jsonify(member=member.json)
 
 
 @api.route("/members/<int:member_id>", methods=["DELETE"])
 @jwt_required()
-def member_delete(member_id):
+def member_delete(member_id: int):
     member = Member.get(member_id)
     member.delete()
     return "", HTTPStatus.NO_CONTENT
@@ -128,14 +148,14 @@ def get_payment_list():
 
 @api.route("/stations")
 @jwt_required()
-def bets_list():
+def get_stations():
     stations = [station.json for station in models.Station.query.all()]
     return jsonify(stations=stations)
 
 
 @api.route("/shares/<int:share_id>", methods=["GET"])
 @jwt_required()
-def shares_details(share_id):
+def shares_details(share_id: int):
     share = Share.get(share_id)
     dict_share = share.json
     dict_share["expected_today"] = share.expected_today
@@ -148,33 +168,42 @@ def shares_details(share_id):
 
 @api.route("/shares/<int:share_id>/deposits", methods=["GET"])
 @jwt_required()
-def share_deposits(share_id):
+def share_deposits(share_id: int):
     deposits = Share.get_deposits(share_id)
     return jsonify(deposits=deposits)
 
 
 @api.route("/shares/<int:share_id>/bets", methods=["GET"])
 @jwt_required()
-def share_bets(share_id):
+def share_bets(share_id: int):
     bets = Share.get_bets(share_id)
     return jsonify(bets=bets)
 
 
-@api.route("/shares/<int:share_id>/bets", methods=["POST", "PUT"])
-@jwt_required()
-def bet_details(share_id):
-    json = request.get_json()
-    if json.get("id"):
-        bet = Bet.get(json["id"])
-    else:
-        bet = Bet()
-        bet.share_id = share_id
+class BetSchema(BaseModel, extra=Extra.forbid):
+    value: int
+    start_date: date
+    end_date: Optional[date]
 
-    # This actually behaves more like a PATCH then a POST
-    # maybe this should be changed?
-    for field in ["value", "start_date", "end_date"]:
-        if field in json:
-            setattr(bet, field, json.get(field))
+
+@api.route("/shares/<int:share_id>/bets", methods=["POST"])
+@validate()
+@jwt_required()
+def post_bet(body: BetSchema, share_id: int):
+    bet = Bet(share_id=share_id, **body.dict())
+    bet.save()
+    return jsonify(bet=bet.json)
+
+
+@api.route("/bets/<int:bet_id>", methods=["PUT"])
+@validate()
+@jwt_required()
+def put_bet(body: BetSchema, bet_id: int):
+    bet = Bet.query.get_or_404(bet_id)
+    json = body.dict()
+
+    for key, value in json.items():
+        setattr(bet, key, value)
     bet.save()
 
     return jsonify(bet=bet.json)
@@ -182,17 +211,25 @@ def bet_details(share_id):
 
 @api.route("/shares/<int:share_id>/bets/<int:bet_id>", methods=["DELETE"])
 @jwt_required()
-def delete_bet(share_id, bet_id):
+def delete_bet(share_id: int, bet_id: int):
     bet = Bet.query.get_or_404(bet_id)
     bet.delete()
     return jsonify(), 204
 
 
+class ShareSchema(BaseModel):
+    id: str
+    station_id: int
+    note: Optional[str]
+    archived: Optional[bool]
+
+
 @api.route("/shares/<int:share_id>", methods=["POST"])
 @jwt_required()
-def post_shares_details(share_id):
+@validate()
+def post_shares_details(body: ShareSchema, share_id: int):
     share = Share.get(share_id)
-    json = request.get_json()
+    json = body.dict()
     for field in ["station_id", "note", "archived"]:
         if field in json:
             setattr(share, field, json.get(field))
@@ -212,11 +249,22 @@ def add_share():
     return jsonify(share=share.json), 201
 
 
+class DepositSchema(BaseModel):
+    amount: str
+    person_id: int
+    timestamp: str
+    title: str
+    archived: Optional[bool]
+    ignore: Optional[bool]
+
+
+# TODO: Convert to PATCH. Only allow `archived` and `ignore` to be changed
 @api.route("/deposits/<int:deposit_id>", methods=["POST"])
 @jwt_required()
-def post_deposit(deposit_id):
+@validate()
+def post_deposit(body: DepositSchema, deposit_id: int):
     deposit = Deposit.get(deposit_id)
-    json = request.get_json()
+    json = body.dict()
     json.pop("id")
     for field in json:
         setattr(deposit, field, json.get(field))
@@ -224,13 +272,15 @@ def post_deposit(deposit_id):
     return jsonify(deposit=deposit.json)
 
 
+# TODO: Covert to POST
 @api.route("/deposits/", methods=["PUT"])
 @jwt_required()
-def put_deposit():
+@validate()
+def put_deposit(body: DepositSchema):
     current_user_email = get_jwt_identity()
     current_user = User.query.filter(User.email == current_user_email).one()
     deposit = Deposit(added_by=current_user.id)
-    json = request.get_json()
+    json = body.dict()
     json.pop("id", None)
     for field in json:
         setattr(deposit, field, json.get(field))
@@ -238,21 +288,22 @@ def put_deposit():
     return jsonify(deposit=deposit.json)
 
 
+class MergeSharesSchema(BaseModel):
+    share1: int
+    share2: int
+
+
 @api.route("/shares/merge", methods=["POST"])
 @jwt_required()
-def merge_shares():
-    json = request.get_json()
-    share1 = json.get("share1")
-    share2 = json.get("share2")
-    if not share1 or not share2:
-        return jsonify(message="You need to supply share1 and share2"), 400
-    merge(share1, share2)
+@validate()
+def merge_shares(body: MergeSharesSchema):
+    merge(body.share1, body.share2)
     return jsonify(message="success")
 
 
 @api.route("/person/<int:person_id>", methods=["GET"])
 @jwt_required()
-def get_person(person_id):
+def get_person(person_id: int):
     return jsonify(Person.get(person_id).json)
 
 
@@ -263,23 +314,19 @@ def user_list():
     return jsonify(users=users)
 
 
+class PatchUserModel(BaseModel):
+    password: constr(min_length=14)
+
+
 @api.route("/users/<int:id>", methods=["PATCH"])
 @jwt_required()
-def modify_user(id):
+@validate()
+def modify_user(body: PatchUserModel, id: int):
     user = User.get(id)
-
-    payload = request.get_json()
-    if not payload or not payload.get("password"):
-        return jsonify({"message": "json body must contain password field"}), 400
-
     current_user_email = get_jwt_identity()
     if not user or not user.email == current_user_email:
         return jsonify({"message": "you cannot change another users's password"}), 403
-
-    if len(payload.get("password")) < 14:
-        return jsonify({"message": "Password must be at least 14 characters long"}), 400
-
-    user.password = payload.get("password")
+    user.password = body.password
     user.save()
     return jsonify(user=user.json)
 
