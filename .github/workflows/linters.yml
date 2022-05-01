@@ -30,9 +30,6 @@ jobs:
           run: |
             poetry install
 
-        # install black as dev dependency after we upgraded flask>=2
-        - run: poetry run pip install black
-
         - run: poetry run black --check .
 
   isort:
