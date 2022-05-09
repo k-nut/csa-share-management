@@ -84,6 +84,7 @@ class Deposit(db.Model, BaseModel):
 class Bet(db.Model, BaseModel):
     id = db.Column(db.Integer, primary_key=True)  # pylint: disable=invalid-name
     value = db.Column(db.Numeric, nullable=False)
+    # TODO: Turn into Date, not DateTime
     start_date = db.Column(db.DateTime, nullable=False)
     end_date = db.Column(db.DateTime)
     share_id = db.Column(db.Integer, db.ForeignKey("share.id"), nullable=False)

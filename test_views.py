@@ -18,36 +18,6 @@ from test_helpers import AuthorizedTest, DBTest
 
 
 class AuthorizedViewsTests(AuthorizedTest):
-    def test_delete_bet(self):
-        bet = BetFactory.create()
-        share = bet.share
-
-        self.assertEqual(db.session.query(Bet).count(), 1)
-
-        response = self.app.delete(f"/api/v1/shares/{share.id}/bets/{bet.id}")
-
-        self.assertEqual(response.status_code, 204)
-        self.assertEqual(db.session.query(Bet).count(), 0)
-
-    def test_delete_bet_unkown_bet(self):
-        bet = BetFactory.create()
-        share = bet.share
-
-        self.assertEqual(db.session.query(Bet).count(), 1)
-
-        response = self.app.delete(f"/api/v1/shares/{share.id}/bets/{bet.id + 1}")
-
-        self.assertEqual(response.status_code, 404)
-
-    def test_add_share(self):
-        self.assertEqual(db.session.query(Share).count(), 0)
-
-        response = self.app.post("/api/v1/shares", json={"note": "my note"})
-
-        self.assertEqual(response.status_code, 201)
-        self.assertEqual(db.session.query(Share).count(), 1)
-        self.assertEqual(response.get_json()["share"]["note"], "my note")
-
     def test_share_emails_empty(self):
         share = ShareFactory.create()
 
@@ -176,6 +146,14 @@ class AuthorizedViewsTests(AuthorizedTest):
         self.assertEqual(updated_member.name, "Paul Wild")
         self.assertEqual(response.json["member"]["name"], "Paul Wild")
 
+    def test_cannot_change_member_id(self):
+        member = MemberFactory.create(name="Paul Wild / Paula Wilder")
+
+        new_member_json = {"id": 100}
+        response = self.app.patch(f"/api/v1/members/{member.id}", json=new_member_json)
+
+        self.assertEqual(response.status_code, 400)
+
     def test_delete_member(self):
         member = MemberFactory.create(name="Paul Wild")
 
@@ -198,14 +176,6 @@ class UnAuthorizedViewsTests(DBTest):
 
         self.assertEqual(response.status_code, 401)
         self.assertEqual(db.session.query(Bet).count(), 1)
-
-    def test_add_share_unauthorized(self):
-        self.assertEqual(db.session.query(Share).count(), 0)
-
-        response = self.app.post("/api/v1/shares", json={"note": "my note"})
-
-        self.assertEqual(response.status_code, 401)
-        self.assertEqual(db.session.query(Share).count(), 0)
 
     def test_login_success(self):
         UserFactory.create(email="user@example.org", password="supersecret")
@@ -270,7 +240,7 @@ class UserManagementViewsTests(DBTest):
         user: User = UserFactory.create(password="hunter2")
         self._login_as_user(user)
 
-        response = self.app.patch(f"/api/v1/users/{user.id}")
+        response = self.app.patch(f"/api/v1/users/{user.id}", json={})
 
         self.assertEqual(response.status_code, 400)
 
@@ -281,7 +251,7 @@ class UserManagementViewsTests(DBTest):
         response = self.app.patch(f"/api/v1/users/{user.id}", json={"password": "tooshort"})
 
         self.assertEqual(response.status_code, 400)
-        self.assertEqual(response.json, {"message": "Password must be at least 14 characters long"})
+        self.assertTrue("validation_error" in response.json)
 
         updated_user = User.get(user.id)
         self.assertTrue(updated_user.check_password("hunter2"))  # did not change own user
@@ -445,6 +415,56 @@ class ShareDetailsTests(AuthorizedTest):
 
 
 class BetDetailsTests(AuthorizedTest):
+    def test_delete_bet(self):
+        bet = BetFactory.create()
+        share = bet.share
+
+        self.assertEqual(db.session.query(Bet).count(), 1)
+
+        response = self.app.delete(f"/api/v1/shares/{share.id}/bets/{bet.id}")
+
+        self.assertEqual(response.status_code, 204)
+        self.assertEqual(db.session.query(Bet).count(), 0)
+
+    def test_delete_bet_unknown_bet(self):
+        bet = BetFactory.create()
+        share = bet.share
+
+        self.assertEqual(db.session.query(Bet).count(), 1)
+
+        response = self.app.delete(f"/api/v1/shares/{share.id}/bets/{bet.id + 1}")
+
+        self.assertEqual(response.status_code, 404)
+
+    def test_post_bet_fails_on_additional_args(self):
+        bet = BetFactory.create()
+
+        payload = {
+            "value": 99,
+            "start_date": bet.start_date.strftime("%Y-%m-%d"),
+            "share_id": 12,  # this is not allowed and should trigger a 400
+        }
+
+        self.assertEqual(db.session.query(Bet).count(), 1)
+
+        response = self.app.put(f"/api/v1/bets/{bet.id}", json=payload)
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(
+            response.json,
+            {
+                "validation_error": {
+                    "body_params": [
+                        {
+                            "loc": ["share_id"],
+                            "msg": "extra fields not permitted",
+                            "type": "value_error.extra",
+                        }
+                    ]
+                }
+            },
+        )
+
     def test_create_bet(self):
         share = ShareFactory.create()
         self.assertEqual(db.session.query(Bet).count(), 0)
@@ -463,9 +483,11 @@ class BetDetailsTests(AuthorizedTest):
     def test_edit_bet(self):
         bet = BetFactory.create(value=20)
 
-        response = self.app.post(
-            f"/api/v1/shares/{bet.share.id}/bets", json={"id": bet.id, "value": "99"}
-        )
+        payload = {
+            "value": 99,
+            "start_date": bet.start_date.strftime("%Y-%m-%d"),
+        }
+        response = self.app.put(f"/api/v1/bets/{bet.id}", json=payload)
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(db.session.query(Bet).count(), 1)
