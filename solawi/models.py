@@ -57,6 +57,7 @@ class Member(db.Model, BaseModel):
 class Deposit(db.Model, BaseModel):
     id = db.Column(db.Integer, primary_key=True)  # pylint: disable=invalid-name
     amount = db.Column(db.Numeric)
+    # TODO: Convert to Date and rename to `date`
     timestamp = db.Column(db.DateTime)
     is_security = db.Column(db.Boolean, default=False)
     title = db.Column(db.Text)
