@@ -4,7 +4,7 @@ from unittest.mock import patch
 from flask_jwt_extended import create_access_token
 
 from solawi.app import app, db
-from solawi.models import Bet, Member, Share, User
+from solawi.models import Bet, Deposit, Member, Share, User
 from test_factories import (
     BetFactory,
     DepositFactory,
@@ -413,6 +413,23 @@ class ShareDetailsTests(AuthorizedTest):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json, expected)
 
+    def test_patch_share(self):
+        share = ShareFactory.create(archived=False)
+
+        response = self.app.patch(f"/api/v1/shares/{share.id}", json={"archived": True})
+
+        updated_share = Share.get(share.id)
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(updated_share.archived)
+
+    def test_patch_share_validates_request(self):
+        share = ShareFactory.create()
+
+        # `id` is not a field that can be changed
+        response = self.app.patch(f"/api/v1/shares/{share.id}", json={"id": 10})
+
+        self.assertEqual(response.status_code, 400)
+
 
 class BetDetailsTests(AuthorizedTest):
     def test_delete_bet(self):
@@ -495,3 +512,37 @@ class BetDetailsTests(AuthorizedTest):
         self.assertEqual(updated_bet.value, 99)
         self.assertEqual(updated_bet.start_date, bet.start_date)
         self.assertEqual(updated_bet.end_date, bet.end_date)
+
+
+class DepositTest(AuthorizedTest):
+    def test_patch_deposit_success(self):
+        deposit = DepositFactory.create(ignore=False)
+
+        response = self.app.patch(f"/api/v1/deposits/{deposit.id}", json={"ignore": True})
+
+        self.assertEqual(response.status_code, 200)
+        updated_deposit = Deposit.get(deposit.id)
+        self.assertTrue(updated_deposit.ignore)
+
+    def test_patch_validates_payload(self):
+        deposit = DepositFactory.create(ignore=False)
+
+        response = self.app.patch(f"/api/v1/deposits/{deposit.id}", json={"amount": 200})
+
+        self.assertEqual(response.status_code, 400)
+
+    def test_post_creates_new_entry(self):
+        person = PersonFactory.create()
+
+        new_deposit = {
+            "amount": 200,
+            "title": "Missing Deposit",
+            "timestamp": "2022-04-07T00:00:00",
+            "person_id": person.id,
+        }
+
+        response = self.app.post("/api/v1/deposits/", json=new_deposit)
+
+        self.assertEqual(response.status_code, 200)
+        new_deposit = Deposit.get(response.json["deposit"]["id"])
+        self.assertEqual(new_deposit.amount, 200)

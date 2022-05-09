@@ -217,6 +217,23 @@ def delete_bet(share_id: int, bet_id: int):
     return jsonify(), 204
 
 
+class SharePatchSchema(BaseModel, extra=Extra.forbid):
+    note: Optional[str]
+    archived: Optional[bool]
+
+
+@api.patch("/shares/<int:share_id>")
+@jwt_required()
+@validate()
+def patch_share(body: SharePatchSchema, share_id: int):
+    share = Share.get(share_id)
+    for key, value in body.dict().items():
+        setattr(share, key, value)
+    share.save()
+    resp = share.json
+    return jsonify(share=resp)
+
+
 class ShareSchema(BaseModel):
     id: str
     station_id: int
@@ -249,39 +266,38 @@ def add_share():
     return jsonify(share=share.json), 201
 
 
-class DepositSchema(BaseModel):
-    amount: str
-    person_id: int
-    timestamp: str
-    title: str
-    archived: Optional[bool]
+class DepositPatchSchema(BaseModel, extra=Extra.forbid):
     ignore: Optional[bool]
+    is_security: Optional[bool]
 
 
-# TODO: Convert to PATCH. Only allow `archived` and `ignore` to be changed
-@api.route("/deposits/<int:deposit_id>", methods=["POST"])
+@api.patch("/deposits/<int:deposit_id>")
 @jwt_required()
 @validate()
-def post_deposit(body: DepositSchema, deposit_id: int):
+def patch_deposit(body: DepositPatchSchema, deposit_id: int):
     deposit = Deposit.get(deposit_id)
     json = body.dict()
-    json.pop("id")
     for field in json:
         setattr(deposit, field, json.get(field))
     deposit.save()
     return jsonify(deposit=deposit.json)
 
 
-# TODO: Covert to POST
-@api.route("/deposits/", methods=["PUT"])
+class DepositSchema(DepositPatchSchema):
+    amount: str
+    timestamp: str
+    title: str
+    person_id: int
+
+
+@api.post("/deposits/")
 @jwt_required()
 @validate()
-def put_deposit(body: DepositSchema):
+def post_deposit(body: DepositSchema):
     current_user_email = get_jwt_identity()
     current_user = User.query.filter(User.email == current_user_email).one()
     deposit = Deposit(added_by=current_user.id)
     json = body.dict()
-    json.pop("id", None)
     for field in json:
         setattr(deposit, field, json.get(field))
     deposit.save()
