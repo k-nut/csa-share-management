@@ -9,7 +9,7 @@ from solawi.models import User
 
 @app.cli.command()
 @click.argument("email")
-@click.argument("password")
+@click.password_option()
 def createuser(email, password):
     """Create a new user"""
     user = User(email, password)
