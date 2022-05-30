@@ -1,6 +1,6 @@
 [tool.black]
 line-length = 100
-target-version = ["py39"]
+target-version = ["py310"]
 extend-exclude = "(^/migrations/.*$)"
 
 [tool.isort]
@@ -16,7 +16,7 @@ description = "Small internal tool for managing monthly deposits in a community 
 authors = ["Knut Hühne <knut@k-nut.eu>"]
 
 [tool.poetry.dependencies]
-python = "^3.9"
+python = "^3.10"
 Flask = "*"
 Flask-Bcrypt = "*"
 Flask-Cors = "*"
@@ -25,7 +25,7 @@ Flask-Migrate = "*"
 Flask-SQLAlchemy = "*"
 psycopg2 = "*"
 simplejson = "*"
-fints = "3.0.1"
+fints = "3.1.0"
 gevent = "*"
 gunicorn = "*"
 sentry-sdk = {extras = ["flask", "sqlalchemy"], version = "*"}
