@@ -301,6 +301,16 @@ class UserManagementViewsTests(DBTest):
         updated_user = User.get(user.id)
         self.assertEqual(updated_user.password_changed_at, date(2017, 3, 31))
 
+    def test_get_shares_fails_if_user_has_expired_password(self):
+        user: User = UserFactory.create(password="hunter2")
+        user.password_changed_at = None
+        user.save()
+        self._login_as_user(user)
+
+        response = self.app.get("/api/v1/shares")
+
+        self.assertEqual(response.status_code, 403)
+
 
 class SharesTests(AuthorizedTest):
     def test_get_shares(self):

@@ -1,10 +1,11 @@
 from datetime import date
 from decimal import Decimal
+from functools import wraps
 from http import HTTPStatus
 from typing import Optional
 
-from flask import Blueprint, jsonify, request
-from flask_jwt_extended import create_access_token, get_jwt_identity, jwt_required
+from flask import Blueprint, abort, current_app, jsonify, request
+from flask_jwt_extended import create_access_token, get_jwt_identity, verify_jwt_in_request
 from flask_pydantic import validate
 from pydantic import Extra
 from pydantic.main import BaseModel
@@ -17,6 +18,21 @@ from solawi.controller import merge
 from solawi.models import Bet, Deposit, Member, Person, Share, User
 
 api = Blueprint("api", __name__)
+
+
+def login_required():
+    def wrapper(fn):
+        @wraps(fn)
+        def decorator(*args, **kwargs):
+            verify_jwt_in_request()
+            current_user = User.query.filter(User.email == get_jwt_identity()).one()
+            if not current_user.password_changed_at:
+                return abort(403)
+            return current_app.ensure_sync(fn)(*args, **kwargs)
+
+        return decorator
+
+    return wrapper
 
 
 class LoginSchema(BaseModel):
@@ -38,7 +54,7 @@ def api_login(body: LoginSchema):
 
 
 @api.route("/shares")
-@jwt_required()
+@login_required()
 def shares_list():
     shares = Share.query.options(joinedload(Share.bets)).options(joinedload(Share.members)).all()
     shares = [share.json for share in shares]
@@ -46,14 +62,14 @@ def shares_list():
 
 
 @api.route("/shares/<int:share_id>/emails")
-@jwt_required()
+@login_required()
 def share_email_list(share_id: int):
     share = Share.get(share_id)
     return jsonify(emails=[member.email for member in share.members])
 
 
 @api.route("/members", methods=["GET"])
-@jwt_required()
+@login_required()
 def member_list():
     members = db.session.query(Member).options(joinedload(Member.share)).all()
     result = []
@@ -77,7 +93,7 @@ class MemberSchema(BaseModel, extra=Extra.forbid):
 
 
 @api.route("/members", methods=["POST"])
-@jwt_required()
+@login_required()
 @validate()
 def post_member(body: MemberSchema):
     share_id = body.share_id
@@ -95,7 +111,7 @@ class MemberPatchSchema(MemberSchema):
 
 
 @api.route("/members/<int:member_id>", methods=["PATCH"])
-@jwt_required()
+@login_required()
 @validate()
 def patch_member(body: MemberPatchSchema, member_id: int):
     member = Member.get(member_id)
@@ -108,7 +124,7 @@ def patch_member(body: MemberPatchSchema, member_id: int):
 
 
 @api.route("/members/<int:member_id>", methods=["DELETE"])
-@jwt_required()
+@login_required()
 def member_delete(member_id: int):
     member = Member.get(member_id)
     member.delete()
@@ -116,7 +132,7 @@ def member_delete(member_id: int):
 
 
 @api.route("/shares/payment_status", methods=["GET"])
-@jwt_required()
+@login_required()
 def get_payment_list():
     deposit_map = Share.get_deposit_map()
     expected_amount_map = Share.get_expected_amount_map()
@@ -147,14 +163,14 @@ def get_payment_list():
 
 
 @api.route("/stations")
-@jwt_required()
+@login_required()
 def get_stations():
     stations = [station.json for station in models.Station.query.all()]
     return jsonify(stations=stations)
 
 
 @api.route("/shares/<int:share_id>", methods=["GET"])
-@jwt_required()
+@login_required()
 def shares_details(share_id: int):
     share = Share.get(share_id)
     dict_share = share.json
@@ -167,14 +183,14 @@ def shares_details(share_id: int):
 
 
 @api.route("/shares/<int:share_id>/deposits", methods=["GET"])
-@jwt_required()
+@login_required()
 def share_deposits(share_id: int):
     deposits = Share.get_deposits(share_id)
     return jsonify(deposits=deposits)
 
 
 @api.route("/shares/<int:share_id>/bets", methods=["GET"])
-@jwt_required()
+@login_required()
 def share_bets(share_id: int):
     bets = Share.get_bets(share_id)
     return jsonify(bets=bets)
@@ -188,7 +204,7 @@ class BetSchema(BaseModel, extra=Extra.forbid):
 
 @api.route("/shares/<int:share_id>/bets", methods=["POST"])
 @validate()
-@jwt_required()
+@login_required()
 def post_bet(body: BetSchema, share_id: int):
     bet = Bet(share_id=share_id, **body.dict())
     bet.save()
@@ -197,7 +213,7 @@ def post_bet(body: BetSchema, share_id: int):
 
 @api.route("/bets/<int:bet_id>", methods=["PUT"])
 @validate()
-@jwt_required()
+@login_required()
 def put_bet(body: BetSchema, bet_id: int):
     bet = Bet.query.get_or_404(bet_id)
     json = body.dict()
@@ -210,7 +226,7 @@ def put_bet(body: BetSchema, bet_id: int):
 
 
 @api.route("/shares/<int:share_id>/bets/<int:bet_id>", methods=["DELETE"])
-@jwt_required()
+@login_required()
 def delete_bet(share_id: int, bet_id: int):
     bet = Bet.query.get_or_404(bet_id)
     bet.delete()
@@ -223,7 +239,7 @@ class SharePatchSchema(BaseModel, extra=Extra.forbid):
 
 
 @api.patch("/shares/<int:share_id>")
-@jwt_required()
+@login_required()
 @validate()
 def patch_share(body: SharePatchSchema, share_id: int):
     share = Share.get(share_id)
@@ -242,7 +258,7 @@ class ShareSchema(BaseModel):
 
 
 @api.route("/shares/<int:share_id>", methods=["POST"])
-@jwt_required()
+@login_required()
 @validate()
 def post_shares_details(body: ShareSchema, share_id: int):
     share = Share.get(share_id)
@@ -256,7 +272,7 @@ def post_shares_details(body: ShareSchema, share_id: int):
 
 
 @api.route("/shares", methods=["POST"])
-@jwt_required()
+@login_required()
 def add_share():
     json = request.get_json()
     share = Share()
@@ -272,7 +288,7 @@ class DepositPatchSchema(BaseModel, extra=Extra.forbid):
 
 
 @api.patch("/deposits/<int:deposit_id>")
-@jwt_required()
+@login_required()
 @validate()
 def patch_deposit(body: DepositPatchSchema, deposit_id: int):
     deposit = Deposit.get(deposit_id)
@@ -291,7 +307,7 @@ class DepositSchema(DepositPatchSchema):
 
 
 @api.post("/deposits/")
-@jwt_required()
+@login_required()
 @validate()
 def post_deposit(body: DepositSchema):
     current_user_email = get_jwt_identity()
@@ -310,7 +326,7 @@ class MergeSharesSchema(BaseModel):
 
 
 @api.route("/shares/merge", methods=["POST"])
-@jwt_required()
+@login_required()
 @validate()
 def merge_shares(body: MergeSharesSchema):
     merge(body.share1, body.share2)
@@ -318,13 +334,13 @@ def merge_shares(body: MergeSharesSchema):
 
 
 @api.route("/person/<int:person_id>", methods=["GET"])
-@jwt_required()
+@login_required()
 def get_person(person_id: int):
     return jsonify(Person.get(person_id).json)
 
 
 @api.route("/users", methods=["GET"])
-@jwt_required()
+@login_required()
 def user_list():
     users = User.get_all_emails()
     return jsonify(users=users)
@@ -335,7 +351,7 @@ class PatchUserModel(BaseModel):
 
 
 @api.route("/users/<int:id>", methods=["PATCH"])
-@jwt_required()
+@login_required()
 @validate()
 def modify_user(body: PatchUserModel, id: int):
     user = User.get(id)
