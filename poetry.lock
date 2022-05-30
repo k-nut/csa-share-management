@@ -168,7 +168,7 @@ python-versions = "*"
 
 [[package]]
 name = "elementpath"
-version = "2.5.2"
+version = "2.5.3"
 description = "XPath 1.0/2.0/3.0 parsers and selectors for ElementTree and lxml"
 category = "main"
 optional = false
@@ -205,7 +205,7 @@ python-dateutil = ">=2.4"
 
 [[package]]
 name = "fints"
-version = "3.0.1"
+version = "3.1.0"
 description = "Pure-python FinTS 3.0 (formerly known as HBCI) implementation"
 category = "main"
 optional = false
@@ -881,7 +881,7 @@ testing = ["coverage (>=5.0.3)", "zope.event", "zope.testing"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.10"
-content-hash = "541e12ea5a2b37f1f5ac67535dc79e721275331a95ff01183a3e74a2b784d024"
+content-hash = "60d21b94ea484f615650809ff13514fb61fd36655af20ca8a5846dcaec5a15d0"
 
 [metadata.files]
 alembic = [
@@ -1056,8 +1056,8 @@ docopt = [
     {file = "docopt-0.6.2.tar.gz", hash = "sha256:49b3a825280bd66b3aa83585ef59c4a8c82f2c8a522dbe754a8bc8d08c85c491"},
 ]
 elementpath = [
-    {file = "elementpath-2.5.2-py3-none-any.whl", hash = "sha256:25368810a76a5d9e464c0e721a12645409fc8c113ffde9e01d88557b4a7663d3"},
-    {file = "elementpath-2.5.2.tar.gz", hash = "sha256:07f2a34bac7a2a909d745da1cb3c7b8cd43ca1d7d1134546db41ffb997bcb11c"},
+    {file = "elementpath-2.5.3-py3-none-any.whl", hash = "sha256:5ef1d51e8daa670f007914ff0f78ca7b2ecaa47e0ea0c5c699a29e6bc5f50385"},
+    {file = "elementpath-2.5.3.tar.gz", hash = "sha256:b8aeb6f27dddc10fb9201b62090628a846cbae8577f3544cb1075fa38d0817f6"},
 ]
 factory-boy = [
     {file = "factory_boy-3.2.1-py2.py3-none-any.whl", hash = "sha256:eb02a7dd1b577ef606b75a253b9818e6f9eaf996d94449c9d5ebb124f90dc795"},
@@ -1068,8 +1068,8 @@ faker = [
     {file = "Faker-13.12.0.tar.gz", hash = "sha256:1f6478011ac8a8273e0f9cd6da03d9ea6391c622db340eca015339512e9cde29"},
 ]
 fints = [
-    {file = "fints-3.0.1-py3-none-any.whl", hash = "sha256:c3889f57fd6bedcefd09b34a6e8d40a6e7b6177088435ed618050655600af53d"},
-    {file = "fints-3.0.1.tar.gz", hash = "sha256:d8a8920fb324a6a4cad2edc0a1a88a7a80b1072b5dc76af13f853ad8cbf80be7"},
+    {file = "fints-3.1.0-py3-none-any.whl", hash = "sha256:f4fb814f26d447257249c3af24f8abbb2bf2726dbbb0ee0e1ad832a9a010b487"},
+    {file = "fints-3.1.0.tar.gz", hash = "sha256:426f6af1a79dce75ef9d475da926c8fc407c1bb3da13acf9fb52f5f0449b58d8"},
 ]
 flake8 = [
     {file = "flake8-4.0.1-py2.py3-none-any.whl", hash = "sha256:479b1304f72536a55948cb40a32dce8bb0ffe3501e26eaf292c7e60eb5e0428d"},

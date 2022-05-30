@@ -25,7 +25,7 @@ Flask-Migrate = "*"
 Flask-SQLAlchemy = "*"
 psycopg2 = "*"
 simplejson = "*"
-fints = "3.0.1"
+fints = "3.1.0"
 gevent = "*"
 gunicorn = "*"
 sentry-sdk = {extras = ["flask", "sqlalchemy"], version = "*"}
