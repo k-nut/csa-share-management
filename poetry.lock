@@ -274,7 +274,7 @@ Six = "*"
 
 [[package]]
 name = "flask-jwt-extended"
-version = "4.4.0"
+version = "4.4.1"
 description = "Extended JWT integration with Flask"
 category = "main"
 optional = false
@@ -1088,8 +1088,8 @@ flask-cors = [
     {file = "Flask_Cors-3.0.10-py2.py3-none-any.whl", hash = "sha256:74efc975af1194fc7891ff5cd85b0f7478be4f7f59fe158102e91abb72bb4438"},
 ]
 flask-jwt-extended = [
-    {file = "Flask-JWT-Extended-4.4.0.tar.gz", hash = "sha256:3fe81504bdc91ad8f1cb975bd2d95ec601251f31bde184115e39fc7e6ed23ea6"},
-    {file = "Flask_JWT_Extended-4.4.0-py2.py3-none-any.whl", hash = "sha256:0d001564c80df8606cbf26e4fad9855de01d97734b8158d8ac7e4faac579f10c"},
+    {file = "Flask-JWT-Extended-4.4.1.tar.gz", hash = "sha256:09887fa372bdd4e9abb60d8a7155a966bf11b74999554410b20975802aec277e"},
+    {file = "Flask_JWT_Extended-4.4.1-py2.py3-none-any.whl", hash = "sha256:9a3e93cc95f5639e95bb0e75a406cf314465e0601ff787f4aade724b065f2cba"},
 ]
 flask-migrate = [
     {file = "Flask-Migrate-3.1.0.tar.gz", hash = "sha256:57d6060839e3a7f150eaab6fe4e726d9e3e7cffe2150fb223d73f92421c6d1d9"},
