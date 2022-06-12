@@ -197,7 +197,7 @@ def share_bets(share_id: int):
 
 
 class BetSchema(BaseModel, extra=Extra.forbid):
-    value: int
+    value: Decimal
     start_date: date
     end_date: Optional[date]
 

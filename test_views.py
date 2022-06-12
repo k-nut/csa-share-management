@@ -511,7 +511,7 @@ class BetDetailsTests(AuthorizedTest):
         bet = BetFactory.create(value=20)
 
         payload = {
-            "value": 99,
+            "value": 99.50,
             "start_date": bet.start_date.strftime("%Y-%m-%d"),
         }
         response = self.app.put(f"/api/v1/bets/{bet.id}", json=payload)
@@ -519,7 +519,7 @@ class BetDetailsTests(AuthorizedTest):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(db.session.query(Bet).count(), 1)
         updated_bet = db.session.query(Bet).first()
-        self.assertEqual(updated_bet.value, 99)
+        self.assertEqual(updated_bet.value, 99.50)
         self.assertEqual(updated_bet.start_date, bet.start_date)
         self.assertEqual(updated_bet.end_date, bet.end_date)
 
