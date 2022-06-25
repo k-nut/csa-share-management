@@ -138,13 +138,14 @@ class Share(db.Model, BaseModel):
     station_id = db.Column(db.Integer, db.ForeignKey("station.id"))
     note = db.Column(db.Text)
     archived = db.Column(db.Boolean, default=False)
+    name = db.Column(db.Text, default="")
 
     @property
     def json(self):
         bets = [bet.json for bet in self.bets]
         return {
             "id": self.id,
-            "name": self.name,
+            "name": self.displayed_name,
             "archived": self.archived,
             "bets": bets,
             "station_id": self.station_id,
@@ -152,7 +153,9 @@ class Share(db.Model, BaseModel):
         }
 
     @property
-    def name(self):
+    def displayed_name(self) -> str:
+        if name := self.name:
+            return name
         return " & ".join(sorted(member.name for member in self.members if member.name))
 
     @property

@@ -426,11 +426,15 @@ class ShareDetailsTests(AuthorizedTest):
     def test_patch_share(self):
         share = ShareFactory.create(archived=False)
 
-        response = self.app.patch(f"/api/v1/shares/{share.id}", json={"archived": True})
+        response = self.app.patch(
+            f"/api/v1/shares/{share.id}", json={"archived": True, "name": "Name of the share"}
+        )
 
         updated_share = Share.get(share.id)
-        self.assertEqual(response.status_code, 200)
+        assert response.status_code == 200, response.json
         self.assertTrue(updated_share.archived)
+        assert updated_share.name == "Name of the share"
+        assert updated_share.displayed_name == "Name of the share"
 
     def test_patch_share_validates_request(self):
         share = ShareFactory.create()

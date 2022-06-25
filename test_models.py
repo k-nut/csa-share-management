@@ -91,7 +91,8 @@ class ShareTest(DBTest):
         MemberFactory(name="Bob", share=share)
         MemberFactory(name="Anna", share=share)
 
-        assert share.name == "Anna & Bob"
+        assert share.name == ""
+        assert share.displayed_name == "Anna & Bob"
 
     def test_name_no_members(self):
         share = ShareFactory()
