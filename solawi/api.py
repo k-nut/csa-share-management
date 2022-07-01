@@ -273,7 +273,6 @@ def patch_share(body: SharePatchSchema, share_id: int) -> ShareSchema:
 def post_shares_details(body: ShareSchema, share_id: int) -> ShareSchema:
     share = Share.get(share_id)
     json = body.dict()
-    breakpoint()
     for field, value in json.items():
         setattr(share, field, value)
     share.save()
