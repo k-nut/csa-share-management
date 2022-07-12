@@ -3,7 +3,7 @@ import datetime
 from datetime import date
 from decimal import Decimal
 
-from sqlalchemy import UniqueConstraint, func, text
+from sqlalchemy import UniqueConstraint, func, not_, or_, text
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import class_mapper
@@ -240,23 +240,19 @@ class Share(db.Model, BaseModel):
         transferred between database and client in order to speed
         up the overall performance of the API.
         """
-        result = db.engine.execute(
-            """
-        select person.share_id,
-               sum(amount) as total_deposits,
-               count(*) as number_of_deposits
-        from deposit
-        join person on person.id = deposit.person_id
-        where not (deposit.is_security or deposit.ignore)
-        group by person.share_id
-"""
+        result = (
+            db.session.query(Deposit)
+            .join(Person)
+            .filter(not_(or_(Deposit.is_security.is_(True), Deposit.ignore.is_(True))))
+            .with_entities(Person.share_id, func.sum(Deposit.amount), func.count(Deposit.id))
+            .group_by(Person.share_id)
         )
         return {
-            row.share_id: {
-                "number_of_deposits": row.number_of_deposits,
-                "total_deposits": row.total_deposits,
+            share_id: {
+                "number_of_deposits": number_of_deposits,
+                "total_deposits": total_deposits,
             }
-            for row in result
+            for (share_id, total_deposits, number_of_deposits) in result
         }
 
     @staticmethod
