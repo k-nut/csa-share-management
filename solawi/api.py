@@ -243,7 +243,7 @@ class SharePatchSchema(BaseModel, extra=Extra.forbid):
 @validate()
 def patch_share(body: SharePatchSchema, share_id: int):
     share = Share.get(share_id)
-    for key, value in body.dict().items():
+    for key, value in body.dict(exclude_unset=True).items():
         setattr(share, key, value)
     share.save()
     resp = share.json
@@ -292,7 +292,7 @@ class DepositPatchSchema(BaseModel, extra=Extra.forbid):
 @validate()
 def patch_deposit(body: DepositPatchSchema, deposit_id: int):
     deposit = Deposit.get(deposit_id)
-    json = body.dict()
+    json = body.dict(exclude_unset=True)
     for field in json:
         setattr(deposit, field, json.get(field))
     deposit.save()
