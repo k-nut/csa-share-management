@@ -7,7 +7,7 @@ from typing import Optional
 from flask import Blueprint, abort, current_app, jsonify, request
 from flask_jwt_extended import create_access_token, get_jwt_identity, verify_jwt_in_request
 from flask_pydantic import validate
-from pydantic import Extra
+from pydantic import Extra, Field
 from pydantic.main import BaseModel
 from pydantic.types import constr
 from sqlalchemy.orm import joinedload
@@ -233,21 +233,14 @@ def delete_bet(share_id: int, bet_id: int):
     return jsonify(), 204
 
 
-class SharePatchSchema(BaseModel, extra=Extra.forbid):
+class SharePatchSchema(BaseModel):
     note: Optional[str]
     archived: Optional[bool]
+    name: str | None
 
-
-@api.patch("/shares/<int:share_id>")
-@login_required()
-@validate()
-def patch_share(body: SharePatchSchema, share_id: int):
-    share = Share.get(share_id)
-    for key, value in body.dict().items():
-        setattr(share, key, value)
-    share.save()
-    resp = share.json
-    return jsonify(share=resp)
+    class Config:
+        orm_mode = True
+        extra = Extra.forbid
 
 
 class ShareSchema(BaseModel):
@@ -255,20 +248,36 @@ class ShareSchema(BaseModel):
     station_id: int
     note: Optional[str]
     archived: Optional[bool]
+    name: str | None = Field(alias="displayed_name")
+
+    class Config:
+        orm_mode = True
+        allow_population_by_field_name = True
+
+
+@api.patch("/shares/<int:share_id>")
+@login_required()
+@validate()
+def patch_share(body: SharePatchSchema, share_id: int) -> ShareSchema:
+    share = Share.get(share_id)
+    for key, value in body.dict().items():
+        setattr(share, key, value)
+    share.save()
+    resp = ShareSchema.from_orm(share)
+    return resp
 
 
 @api.route("/shares/<int:share_id>", methods=["POST"])
 @login_required()
 @validate()
-def post_shares_details(body: ShareSchema, share_id: int):
+def post_shares_details(body: ShareSchema, share_id: int) -> ShareSchema:
     share = Share.get(share_id)
     json = body.dict()
-    for field in ["station_id", "note", "archived"]:
-        if field in json:
-            setattr(share, field, json.get(field))
+    for field, value in json.items():
+        setattr(share, field, value)
     share.save()
-    resp = share.json
-    return jsonify(share=resp)
+    resp = ShareSchema.from_orm(share)
+    return resp
 
 
 @api.route("/shares", methods=["POST"])
