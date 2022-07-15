@@ -424,13 +424,15 @@ class ShareDetailsTests(AuthorizedTest):
         self.assertEqual(response.json, expected)
 
     def test_patch_share(self):
-        share = ShareFactory.create(archived=False)
+        original_note = "My little note"
+        share = ShareFactory.create(archived=False, note=original_note)
 
         response = self.app.patch(f"/api/v1/shares/{share.id}", json={"archived": True})
 
         updated_share = Share.get(share.id)
         self.assertEqual(response.status_code, 200)
         self.assertTrue(updated_share.archived)
+        self.assertEqual(updated_share.note, original_note)
 
     def test_patch_share_validates_request(self):
         share = ShareFactory.create()
@@ -531,8 +533,10 @@ class DepositTest(AuthorizedTest):
         response = self.app.patch(f"/api/v1/deposits/{deposit.id}", json={"ignore": True})
 
         self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json["deposit"]["is_security"], False)
         updated_deposit = Deposit.get(deposit.id)
         self.assertTrue(updated_deposit.ignore)
+        self.assertIs(updated_deposit.is_security, False)
 
     def test_patch_validates_payload(self):
         deposit = DepositFactory.create(ignore=False)

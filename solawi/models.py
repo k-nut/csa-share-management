@@ -59,9 +59,9 @@ class Deposit(db.Model, BaseModel):
     amount = db.Column(db.Numeric)
     # TODO: Convert to Date and rename to `date`
     timestamp = db.Column(db.DateTime)
-    is_security = db.Column(db.Boolean, default=False)
+    is_security = db.Column(db.Boolean, nullable=False, default=False)
     title = db.Column(db.Text)
-    ignore = db.Column(db.Boolean, default=False)
+    ignore = db.Column(db.Boolean, nullable=False, default=False)
     added_by = db.Column(db.Integer, db.ForeignKey("user.id"))
 
     person_id = db.Column(db.Integer, db.ForeignKey("person.id"))
