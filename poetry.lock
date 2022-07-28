@@ -274,11 +274,11 @@ Six = "*"
 
 [[package]]
 name = "flask-jwt-extended"
-version = "4.4.2"
+version = "4.4.3"
 description = "Extended JWT integration with Flask"
 category = "main"
 optional = false
-python-versions = ">=3.6,<4"
+python-versions = ">=3.7,<4"
 
 [package.dependencies]
 Flask = ">=2.0,<3.0"
@@ -435,9 +435,9 @@ python-versions = ">=3.7"
 MarkupSafe = ">=0.9.2"
 
 [package.extras]
-babel = ["babel"]
-lingua = ["lingua"]
 testing = ["pytest"]
+lingua = ["lingua"]
+babel = ["babel"]
 
 [[package]]
 name = "markupsafe"
@@ -515,8 +515,8 @@ optional = false
 python-versions = ">=3.6"
 
 [package.extras]
-dev = ["pre-commit", "tox"]
-testing = ["pytest", "pytest-benchmark"]
+testing = ["pytest-benchmark", "pytest"]
+dev = ["tox", "pre-commit"]
 
 [[package]]
 name = "psycopg2"
@@ -582,10 +582,10 @@ optional = false
 python-versions = ">=3.6"
 
 [package.extras]
+tests = ["coverage[toml] (==5.0.4)", "pytest (>=6.0.0,<7.0.0)"]
+docs = ["zope.interface", "sphinx-rtd-theme", "sphinx"]
+dev = ["pre-commit", "mypy", "coverage[toml] (==5.0.4)", "pytest (>=6.0.0,<7.0.0)", "cryptography (>=3.3.1)", "zope.interface", "sphinx-rtd-theme", "sphinx"]
 crypto = ["cryptography (>=3.3.1)"]
-dev = ["sphinx", "sphinx-rtd-theme", "zope.interface", "cryptography (>=3.3.1)", "pytest (>=6.0.0,<7.0.0)", "coverage[toml] (==5.0.4)", "mypy", "pre-commit"]
-docs = ["sphinx", "sphinx-rtd-theme", "zope.interface"]
-tests = ["pytest (>=6.0.0,<7.0.0)", "coverage[toml] (==5.0.4)"]
 
 [[package]]
 name = "pyparsing"
@@ -632,7 +632,7 @@ coverage = {version = ">=5.2.1", extras = ["toml"]}
 pytest = ">=4.6"
 
 [package.extras]
-testing = ["fields", "hunter", "process-tests", "six", "pytest-xdist", "virtualenv"]
+testing = ["virtualenv", "pytest-xdist", "six", "process-tests", "hunter", "fields"]
 
 [[package]]
 name = "pytest-watch"
@@ -1090,8 +1090,8 @@ flask-cors = [
     {file = "Flask_Cors-3.0.10-py2.py3-none-any.whl", hash = "sha256:74efc975af1194fc7891ff5cd85b0f7478be4f7f59fe158102e91abb72bb4438"},
 ]
 flask-jwt-extended = [
-    {file = "Flask-JWT-Extended-4.4.2.tar.gz", hash = "sha256:f582bba980fcf728ab7250dbb6fbdca8d4e074e24eb2915b01184376ffff98c7"},
-    {file = "Flask_JWT_Extended-4.4.2-py2.py3-none-any.whl", hash = "sha256:793f9e720d0e679cea8f99af6436819bfd1622fc345afeff48878c09f42548f6"},
+    {file = "Flask-JWT-Extended-4.4.3.tar.gz", hash = "sha256:a2571df484c5635ad996d364242ec28fc69f386915cd69b1842639712b84c36d"},
+    {file = "Flask_JWT_Extended-4.4.3-py2.py3-none-any.whl", hash = "sha256:188907ea9332bdd123a95a457e7487556770480264ce3b78c8835b4347e324cc"},
 ]
 flask-migrate = [
     {file = "Flask-Migrate-3.1.0.tar.gz", hash = "sha256:57d6060839e3a7f150eaab6fe4e726d9e3e7cffe2150fb223d73f92421c6d1d9"},
