@@ -303,7 +303,7 @@ Flask-SQLAlchemy = ">=1.0"
 
 [[package]]
 name = "flask-pydantic"
-version = "0.9.0"
+version = "0.10.0"
 description = "Flask extension for integration with Pydantic library"
 category = "main"
 optional = false
@@ -1098,8 +1098,8 @@ flask-migrate = [
     {file = "Flask_Migrate-3.1.0-py3-none-any.whl", hash = "sha256:a6498706241aba6be7a251078de9cf166d74307bca41a4ca3e403c9d39e2f897"},
 ]
 flask-pydantic = [
-    {file = "Flask-Pydantic-0.9.0.tar.gz", hash = "sha256:fb5812f64f9605fb047960637e2c15c8eab955e43d2df01056e72f26c3cfcc64"},
-    {file = "Flask_Pydantic-0.9.0-py3-none-any.whl", hash = "sha256:cc80dfdb5177bcaeb3cb8c6f4febc4c4bd2c6cad313b80ae45578b37791f2856"},
+    {file = "Flask-Pydantic-0.10.0.tar.gz", hash = "sha256:abc5a5b0b63cb77312e55db632a62e9a614044c9c9618e6ffe5b30f4c4d2f2a7"},
+    {file = "Flask_Pydantic-0.10.0-py3-none-any.whl", hash = "sha256:a52e12d5c3d9f53c06edb4a138973d2bf6dea968269bcedc67751403ca70e856"},
 ]
 flask-sqlalchemy = [
     {file = "Flask-SQLAlchemy-2.5.1.tar.gz", hash = "sha256:2bda44b43e7cacb15d4e05ff3cc1f8bc97936cc464623424102bfc2c35e95912"},
