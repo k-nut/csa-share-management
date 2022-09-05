@@ -1,3 +1,4 @@
+from solawi.app import db
 from solawi.models import Share
 
 
@@ -18,6 +19,7 @@ def merge(first_share_id, second_share_id):
     first_share.station_id = first_share.station_id or second_share.station_id
     first_share.note = " \n --- \n ".join(without_nones([first_share.note, second_share.note]))
 
-    first_share.save()
-    second_share.delete()
+    db.session.add(first_share)
+    db.session.delete(second_share)
+    db.session.commit()
     return first_share.id
