@@ -366,7 +366,7 @@ class SharesTests(AuthorizedTest):
 
 class PaymentStatusTests(AuthorizedTest):
     def test_get_shares(self):
-        # The tests for making sure that the right amout is calculated for the
+        # The tests for making sure that the right amount is calculated for the
         # expected value are in test_models
         # This should only be for the api
         station = StationFactory.create(name="Our Station")
@@ -376,6 +376,7 @@ class PaymentStatusTests(AuthorizedTest):
         )
         person = PersonFactory.create(share=bet.share)
         DepositFactory.create(person=person, amount=99)
+        DepositFactory.create(person=person, amount=120, is_security=True)
 
         response = self.app.get("/api/v1/shares/payment_status")
 
@@ -388,9 +389,10 @@ class PaymentStatusTests(AuthorizedTest):
                     "id": 1,
                     "name": "",
                     "note": None,
-                    "number_of_deposits": 1,
+                    "number_of_deposits": 2,
                     "station_name": "Our Station",
                     "total_deposits": 99.0,
+                    "total_security": 120.0,
                 }
             ]
         }
