@@ -230,6 +230,7 @@ class Share(db.Model, BaseModel):
         {
           <share_id>: {
            "total_deposits": <decimal>
+           "total_security": <decimal>
            "number_of_deposits": <decimal>
           }
         }
@@ -243,11 +244,12 @@ class Share(db.Model, BaseModel):
         result = db.engine.execute(
             """
         select person.share_id,
-               sum(amount) as total_deposits,
+               sum(amount) filter (where not deposit.is_security) as total_deposits,
+               sum(amount) filter (where deposit.is_security) as total_security,
                count(*) as number_of_deposits
         from deposit
         join person on person.id = deposit.person_id
-        where not (deposit.is_security or deposit.ignore)
+        where not deposit.ignore
         group by person.share_id
 """
         )
@@ -255,6 +257,7 @@ class Share(db.Model, BaseModel):
             row.share_id: {
                 "number_of_deposits": row.number_of_deposits,
                 "total_deposits": row.total_deposits,
+                "total_security": row.total_security,
             }
             for row in result
         }

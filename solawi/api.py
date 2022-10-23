@@ -150,6 +150,7 @@ def get_payment_list():
             "name": share.name,
             "total_deposits": deposit_details.get("total_deposits", 0),
             "number_of_deposits": deposit_details.get("number_of_deposits", 0),
+            "total_security": deposit_details.get("total_security", 0),
             "archived": share.archived,
             "note": share.note,
             "station_name": share.station.name if share.station else "",
