@@ -148,13 +148,13 @@ def get_payment_list():
         share_payments = {
             "id": share.id,
             "name": share.name,
-            "total_deposits": deposit_details.get("total_deposits", 0),
-            "number_of_deposits": deposit_details.get("number_of_deposits", 0),
-            "total_security": deposit_details.get("total_security", 0),
+            "total_deposits": deposit_details.get("total_deposits") or 0,
+            "number_of_deposits": deposit_details.get("number_of_deposits") or 0,
+            "total_security": deposit_details.get("total_security") or 0,
             "archived": share.archived,
             "note": share.note,
             "station_name": share.station.name if share.station else "",
-            "expected_today": expected_amount_map.get(share.id, 0),
+            "expected_today": expected_amount_map.get(share.id) or 0,
         }
         share_payments["difference_today"] = (
             share_payments["total_deposits"] - share_payments["expected_today"]
