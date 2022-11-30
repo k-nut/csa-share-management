@@ -173,7 +173,7 @@ def get_stations():
 @api.route("/shares/<int:share_id>", methods=["GET"])
 @login_required()
 def shares_details(share_id: int):
-    share = Share.get(share_id)
+    share = Share.query.get_or_404(share_id)
     dict_share = share.json
     dict_share["expected_today"] = share.expected_today
     dict_share["total_deposits"] = share.total_deposits or 0
