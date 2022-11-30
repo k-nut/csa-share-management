@@ -425,6 +425,11 @@ class ShareDetailsTests(AuthorizedTest):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json, expected)
 
+    def test_get_share_details_404(self):
+        response = self.app.get("/api/v1/shares/1337")
+
+        self.assertEqual(response.status_code, 404)
+
     def test_patch_share(self):
         original_note = "My little note"
         share = ShareFactory.create(archived=False, note=original_note)
