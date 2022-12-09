@@ -4,7 +4,7 @@ from functools import wraps
 from http import HTTPStatus
 from typing import Optional
 
-from flask import Blueprint, abort, current_app, jsonify, request
+from flask import Blueprint, current_app, jsonify, request
 from flask_jwt_extended import create_access_token, get_jwt_identity, verify_jwt_in_request
 from flask_pydantic import validate
 from pydantic import Extra
@@ -20,14 +20,14 @@ from solawi.models import Bet, Deposit, Member, Person, Share, User
 api = Blueprint("api", __name__)
 
 
-def login_required():
+def login_required(skip_needs_change_check=False):
     def wrapper(fn):
         @wraps(fn)
         def decorator(*args, **kwargs):
             verify_jwt_in_request()
             current_user = User.query.filter(User.email == get_jwt_identity()).one()
-            if not current_user.password_changed_at:
-                return abort(403)
+            if not skip_needs_change_check and not current_user.password_changed_at:
+                return jsonify({"message": "You must change your password before continuing"}), 403
             return current_app.ensure_sync(fn)(*args, **kwargs)
 
         return decorator
@@ -352,7 +352,7 @@ class PatchUserModel(BaseModel):
 
 
 @api.route("/users/<int:id>", methods=["PATCH"])
-@login_required()
+@login_required(skip_needs_change_check=True)
 @validate()
 def modify_user(body: PatchUserModel, id: int):
     user = User.get(id)
