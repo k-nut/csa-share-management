@@ -167,7 +167,6 @@ class UserTest(DBTest):
 
 class ModelTest(DBTest):
     def test_person(self):
-
         person = Person.get_or_create("Firstname Lastname")
 
         timestamp = date(2016, 1, 2)
@@ -184,7 +183,6 @@ class ModelTest(DBTest):
         assert len(Deposit.query.all()) == 1
 
     def test_other(self):
-
         assert len(Deposit.query.all()) == 0
 
     def test_ignore_deposits(self):
@@ -327,3 +325,43 @@ class ModelTest(DBTest):
         )
         bet.save()
         assert bet.expected_at(date(2017, 3, 31)) == 300
+
+    def test_expected_before_the_bet_starts(self):
+        share = ShareFactory.create()
+        bet = Bet(
+            start_date=date(2023, 1, 1),
+            value=100,
+            share_id=share.id,
+        )
+        bet.save()
+        self.assertEqual(bet.expected_at(date(2022, 12, 18)), 0)
+
+    def test_expected_before_the_bet_starts_but_close_enough_to_count(self):
+        share = ShareFactory.create()
+        bet = Bet(
+            start_date=date(2023, 1, 1),
+            value=100,
+            share_id=share.id,
+        )
+        bet.save()
+        self.assertEqual(bet.expected_at(date(2022, 12, 28)), 100)
+
+    def test_expected_in_the_starting_month(self):
+        share = ShareFactory.create()
+        bet = Bet(
+            start_date=date(2023, 1, 1),
+            value=100,
+            share_id=share.id,
+        )
+        bet.save()
+        self.assertEqual(bet.expected_at(date(2023, 1, 28)), 200)
+
+    def test_expected_before_the_bet_starts_but_in_the_same_year(self):
+        share = ShareFactory.create()
+        bet = Bet(
+            start_date=date(2023, 3, 1),
+            value=100,
+            share_id=share.id,
+        )
+        bet.save()
+        self.assertEqual(bet.expected_at(date(2023, 2, 28)), 100)
