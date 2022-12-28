@@ -292,7 +292,7 @@ asymmetric-crypto = ["cryptography (>=3.3.1)"]
 
 [[package]]
 name = "flask-migrate"
-version = "3.1.0"
+version = "4.0.0"
 description = "SQLAlchemy database migrations for Flask applications using Alembic."
 category = "main"
 optional = false
@@ -1118,8 +1118,8 @@ Flask-JWT-Extended = [
     {file = "Flask_JWT_Extended-4.4.4-py2.py3-none-any.whl", hash = "sha256:a85eebfa17c339a7260c4643475af444784ba6de5588adda67406f0a75599553"},
 ]
 flask-migrate = [
-    {file = "Flask-Migrate-3.1.0.tar.gz", hash = "sha256:57d6060839e3a7f150eaab6fe4e726d9e3e7cffe2150fb223d73f92421c6d1d9"},
-    {file = "Flask_Migrate-3.1.0-py3-none-any.whl", hash = "sha256:a6498706241aba6be7a251078de9cf166d74307bca41a4ca3e403c9d39e2f897"},
+    {file = "Flask-Migrate-4.0.0.tar.gz", hash = "sha256:2a301c3040af6844f29d9149abe428a0f08ebc8fa149e72113bbb36fa341920a"},
+    {file = "Flask_Migrate-4.0.0-py3-none-any.whl", hash = "sha256:e75a46b657e3062296b9f6e92f31e19662f76cfee8abd6ae94640cbcb79fe016"},
 ]
 Flask-Pydantic = [
     {file = "Flask-Pydantic-0.11.0.tar.gz", hash = "sha256:eef679b24e34ffb02e24e1d998ac023007aa2b531927fdc2f9b8114a12c19bb4"},
@@ -1136,6 +1136,7 @@ gevent = [
     {file = "gevent-22.10.2-cp27-cp27m-win_amd64.whl", hash = "sha256:1d543c9407a1e4bca11a8932916988cfb16de00366de5bf7bc9e7a3f61e60b18"},
     {file = "gevent-22.10.2-cp27-cp27mu-manylinux2010_x86_64.whl", hash = "sha256:4e2f008c82dc54ec94f4de12ca6feea60e419babb48ec145456907ae61625aa4"},
     {file = "gevent-22.10.2-cp310-cp310-macosx_10_15_x86_64.whl", hash = "sha256:990d7069f14dc40674e0d5cb43c68fd3bad8337048613b9bb94a0c4180ffc176"},
+    {file = "gevent-22.10.2-cp310-cp310-macosx_10_9_universal2.whl", hash = "sha256:526ff5b6fc7e9de686859ae1b0f0ddf60a65cead2241ddc9c9b074185f0e2e9c"},
     {file = "gevent-22.10.2-cp310-cp310-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:f23d0997149a816a2a9045af29c66f67f405a221745b34cefeac5769ed451db8"},
     {file = "gevent-22.10.2-cp310-cp310-manylinux_2_17_ppc64le.manylinux2014_ppc64le.whl", hash = "sha256:b43d500d7d3c0e03070dee813335bb5315215aa1cf6a04c61093dfdd718640b3"},
     {file = "gevent-22.10.2-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:17b68f4c9e20e47ad49fe797f37f91d5bbeace8765ce2707f979a8d4ec197e4d"},
