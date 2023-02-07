@@ -1,11 +1,20 @@
 import os
 import unittest
 
+import decorator
 from flask_jwt_extended import create_access_token
 from flask_migrate import upgrade
 
 from solawi.app import app, db
 from test_factories import UserFactory
+
+
+def with_app_context(func):
+    def wrapper(func, *args, **kwargs):
+        with app.app_context():
+            return func(*args, **kwargs)
+
+    return decorator.decorator(wrapper, func)
 
 
 class DBTest(unittest.TestCase):

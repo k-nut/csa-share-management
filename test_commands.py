@@ -3,10 +3,11 @@ import datetime
 from solawi.commands import _split_deposits
 from solawi.models import Deposit, Person
 from test_factories import DepositFactory, PersonFactory, ShareFactory
-from test_helpers import DBTest
+from test_helpers import DBTest, with_app_context
 
 
 class TestCommands(DBTest):
+    @with_app_context
     def test_split_deposits(self):
         # Arrange
         share1 = ShareFactory.create()
