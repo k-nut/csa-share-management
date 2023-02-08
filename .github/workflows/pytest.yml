@@ -48,10 +48,13 @@ jobs:
       - run: |
           poetry run pip install codecov
 
-      - run: poetry run pytest --cov=./
+      - run: |
+          poetry run flask db upgrade head
+          poetry run pytest --cov=./
         env:
           DATABASE_URL: postgresql://postgres:password@localhost/solawi
           DATABASE_URL_TEST: postgresql://postgres:password@localhost/solawi
           SECRET_KEY: required_but_unused_in_test
+          FLASK_APP: solawi/app.py
 
       - run: poetry run codecov
