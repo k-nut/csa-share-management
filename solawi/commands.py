@@ -26,6 +26,7 @@ def change_password(email):
     if not user:
         raise click.UsageError(f'No user found for e-mail "{email}"')
     user.password = getpass()
+    user.password_changed_at = None
     user.save()
     click.echo(f"Updated user {user}")
 
