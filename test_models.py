@@ -1,6 +1,8 @@
 from datetime import date, datetime
 from decimal import Decimal
 
+import pytest
+
 from solawi.models import Bet, Deposit, Person, User
 from test_factories import (
     BetFactory,
@@ -14,6 +16,7 @@ from test_helpers import DBTest
 
 
 class DepositTest(DBTest):
+    @pytest.mark.usefixtures("app_ctx")
     def test_jsonify(self):
         deposit = Deposit(
             title="June Payment John Doe", timestamp=datetime(2018, 1, 1, 12, 0), amount=80.21
@@ -32,12 +35,14 @@ class DepositTest(DBTest):
         }
         assert deposit.json == expected
 
+    @pytest.mark.usefixtures("app_ctx")
     def test_latest(self):
         DepositFactory.create(timestamp=datetime(2018, 1, 1, 12, 0))
         DepositFactory.create(timestamp=datetime(2019, 1, 1, 12, 0))
 
         assert Deposit.latest_import() == datetime(2019, 1, 1, 12, 0)
 
+    @pytest.mark.usefixtures("app_ctx")
     def test_latest_with_manual(self):
         user = UserFactory.create()
         DepositFactory.create(timestamp=datetime(2018, 1, 1, 12, 0))
@@ -47,6 +52,7 @@ class DepositTest(DBTest):
 
 
 class BetTest(DBTest):
+    @pytest.mark.usefixtures("app_ctx")
     def test_jsonify(self):
         share = ShareFactory.create()
         bet = BetFactory(share=share)
@@ -60,6 +66,7 @@ class BetTest(DBTest):
         }
         assert bet.json == expected
 
+    @pytest.mark.usefixtures("app_ctx")
     def test_expected_today(self):
         bet = BetFactory.create(
             start_date=date(2017, 1, 1),
@@ -70,6 +77,7 @@ class BetTest(DBTest):
 
 
 class ShareTest(DBTest):
+    @pytest.mark.usefixtures("app_ctx")
     def test_jsonify(self):
         share = ShareFactory()
         MemberFactory(name="John Doe", share=share)
@@ -86,6 +94,7 @@ class ShareTest(DBTest):
 
         assert share.json == expected
 
+    @pytest.mark.usefixtures("app_ctx")
     def test_name(self):
         share = ShareFactory()
         MemberFactory(name="Bob", share=share)
@@ -93,11 +102,13 @@ class ShareTest(DBTest):
 
         assert share.name == "Anna & Bob"
 
+    @pytest.mark.usefixtures("app_ctx")
     def test_name_no_members(self):
         share = ShareFactory()
 
         assert share.name == ""
 
+    @pytest.mark.usefixtures("app_ctx")
     def test_join_date(self):
         share = ShareFactory()
         BetFactory(share=share, start_date=date(2019, 1, 1))
@@ -107,6 +118,7 @@ class ShareTest(DBTest):
 
 
 class PersonTest(DBTest):
+    @pytest.mark.usefixtures("app_ctx")
     def test_jsonify(self):
         share = ShareFactory.create()
         person = PersonFactory(name="Misses Cash", share=share)
@@ -117,6 +129,7 @@ class PersonTest(DBTest):
 
 
 class MemberTest(DBTest):
+    @pytest.mark.usefixtures("app_ctx")
     def test_jsonify(self):
         share = ShareFactory.create()
         member = MemberFactory(
@@ -135,6 +148,7 @@ class MemberTest(DBTest):
 
 
 class UserTest(DBTest):
+    @pytest.mark.usefixtures("app_ctx")
     def test_get_by_email(self):
         UserFactory.create(email="user1@example.org")
         UserFactory.create(active=False, email="user2@example.org")
@@ -143,6 +157,7 @@ class UserTest(DBTest):
 
         assert emails == [("user1@example.org",)]
 
+    @pytest.mark.usefixtures("app_ctx")
     def test_authenticate_and_get_success(self):
         user = UserFactory.create(email="user1@example.org", password="hunter2")
 
@@ -150,6 +165,7 @@ class UserTest(DBTest):
 
         assert fetched_user == user
 
+    @pytest.mark.usefixtures("app_ctx")
     def test_authenticate_and_get_wrong_password(self):
         UserFactory.create(email="user1@example.org", password="hunter2")
 
@@ -157,6 +173,7 @@ class UserTest(DBTest):
 
         assert fetched_user is None
 
+    @pytest.mark.usefixtures("app_ctx")
     def test_authenticate_and_get_wrong_no_longer_active(self):
         UserFactory.create(email="user1@example.org", password="hunter2", active=False)
 
@@ -166,6 +183,7 @@ class UserTest(DBTest):
 
 
 class ModelTest(DBTest):
+    @pytest.mark.usefixtures("app_ctx")
     def test_person(self):
         person = Person.get_or_create("Firstname Lastname")
 
@@ -182,9 +200,11 @@ class ModelTest(DBTest):
         assert share.total_deposits == 63
         assert len(Deposit.query.all()) == 1
 
+    @pytest.mark.usefixtures("app_ctx")
     def test_other(self):
         assert len(Deposit.query.all()) == 0
 
+    @pytest.mark.usefixtures("app_ctx")
     def test_ignore_deposits(self):
         person = Person.get_or_create("Firstname Lastname")
 
@@ -207,6 +227,7 @@ class ModelTest(DBTest):
         assert share.total_deposits == 0
         assert len(Deposit.query.all()) == 1
 
+    @pytest.mark.usefixtures("app_ctx")
     def test_expected_amount_wiht_custom_start_date(self):
         person = Person.get_or_create("Firstname Lastname")
 
@@ -229,6 +250,7 @@ class ModelTest(DBTest):
         assert share.total_deposits == 0
         assert len(Deposit.query.all()) == 1
 
+    @pytest.mark.usefixtures("app_ctx")
     def test_expected_today_full_month(self):
         share = ShareFactory.create()
         bet = Bet(
@@ -240,30 +262,35 @@ class ModelTest(DBTest):
         bet.save()
         assert share.expected_today == 300
 
+    @pytest.mark.usefixtures("app_ctx")
     def test_expected_today_without_end_date(self):
         share = ShareFactory.create()
         bet = Bet(start_date=date(2017, 1, 1), value=100, share_id=share.id)
         bet.save()
         assert bet.expected_at(date(2017, 3, 31)) == 400
 
+    @pytest.mark.usefixtures("app_ctx")
     def test_expected_today_without_end_date_future(self):
         share = ShareFactory.create()
         bet = Bet(start_date=date(2019, 6, 1), value=100, share_id=share.id)
         bet.save()
         assert bet.expected_at(date(2019, 5, 20)) == 0
 
+    @pytest.mark.usefixtures("app_ctx")
     def test_expected_today_without_end_date_mid_month(self):
         share = ShareFactory.create()
         bet = Bet(start_date=date(2017, 1, 1), value=100, share_id=share.id)
         bet.save()
         assert bet.expected_at(date(2017, 3, 15)) == 300
 
+    @pytest.mark.usefixtures("app_ctx")
     def test_expected_today_without_end_date_begin_month(self):
         share = ShareFactory.create()
         bet = Bet(start_date=date(2017, 1, 1), value=100, share_id=share.id)
         bet.save()
         assert bet.expected_at(date(2017, 4, 1)) == 400
 
+    @pytest.mark.usefixtures("app_ctx")
     def test_expected_today_half_month(self):
         share = ShareFactory.create()
         bet = Bet(
@@ -275,24 +302,28 @@ class ModelTest(DBTest):
         bet.save()
         assert share.expected_today == 250
 
+    @pytest.mark.usefixtures("app_ctx")
     def test_expected_today_half_month_mocked_today(self):
         share = ShareFactory.create()
         bet = Bet(start_date=date(2017, 1, 15), value=100, share_id=share.id)
         bet.save()
         assert bet.expected_at(date(2017, 1, 17)) == 50
 
+    @pytest.mark.usefixtures("app_ctx")
     def test_expected_today_half_month_mocked_today_half_delta(self):
         share = ShareFactory.create()
         bet = Bet(start_date=date(2019, 3, 15), value=100, share_id=share.id)
         bet.save()
         assert bet.expected_at(date(2019, 7, 6)) == 450
 
+    @pytest.mark.usefixtures("app_ctx")
     def test_expected_today_half_month_mocked_today_month_end(self):
         share = ShareFactory.create()
         bet = Bet(start_date=date(2017, 1, 15), value=100, share_id=share.id)
         bet.save()
         assert bet.expected_at(date(2017, 1, 31)) == 150
 
+    @pytest.mark.usefixtures("app_ctx")
     def test_expected_today_is_decimal(self):
         share = ShareFactory.create()
         bet = Bet(
@@ -304,6 +335,7 @@ class ModelTest(DBTest):
         bet.save()
         assert share.expected_today == Decimal("291.51")
 
+    @pytest.mark.usefixtures("app_ctx")
     def test_expected_today_across_years(self):
         share = ShareFactory.create()
         bet = Bet(
@@ -315,6 +347,7 @@ class ModelTest(DBTest):
         bet.save()
         assert share.expected_today == 150
 
+    @pytest.mark.usefixtures("app_ctx")
     def test_expected_at_a_time_before_the_bets_end_time(self):
         share = ShareFactory.create()
         bet = Bet(
@@ -326,6 +359,7 @@ class ModelTest(DBTest):
         bet.save()
         assert bet.expected_at(date(2017, 3, 31)) == 300
 
+    @pytest.mark.usefixtures("app_ctx")
     def test_expected_before_the_bet_starts(self):
         share = ShareFactory.create()
         bet = Bet(
@@ -336,6 +370,7 @@ class ModelTest(DBTest):
         bet.save()
         self.assertEqual(bet.expected_at(date(2022, 12, 18)), 0)
 
+    @pytest.mark.usefixtures("app_ctx")
     def test_expected_before_the_bet_starts_but_close_enough_to_count(self):
         share = ShareFactory.create()
         bet = Bet(
@@ -346,6 +381,7 @@ class ModelTest(DBTest):
         bet.save()
         self.assertEqual(bet.expected_at(date(2022, 12, 28)), 100)
 
+    @pytest.mark.usefixtures("app_ctx")
     def test_expected_in_the_starting_month(self):
         share = ShareFactory.create()
         bet = Bet(
@@ -356,6 +392,7 @@ class ModelTest(DBTest):
         bet.save()
         self.assertEqual(bet.expected_at(date(2023, 1, 28)), 200)
 
+    @pytest.mark.usefixtures("app_ctx")
     def test_expected_before_the_bet_starts_but_in_the_same_year(self):
         share = ShareFactory.create()
         bet = Bet(
