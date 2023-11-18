@@ -1,10 +1,12 @@
 import logging
 import os
 import sys
-from datetime import date
+from datetime import date, datetime
+from decimal import Decimal
 
 import sentry_sdk
 from flask import Flask
+from flask.json.provider import DefaultJSONProvider
 from flask_bcrypt import Bcrypt
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
@@ -12,7 +14,6 @@ from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 from sentry_sdk.integrations.flask import FlaskIntegration
 from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
-from simplejson import JSONEncoder
 
 secret_key = os.environ.get("SECRET_KEY")
 if secret_key is None:
@@ -33,6 +34,16 @@ sentry_sdk.init(
     traces_sample_rate=0.6,
 )
 
+
+class CustomJSONProvider(DefaultJSONProvider):
+    def default(self, o):
+        if isinstance(o, date) or isinstance(o, datetime):
+            return o.isoformat()
+        if isinstance(o, Decimal):
+            return float(o)
+        return super().default(o)
+
+
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = db_url
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
@@ -41,28 +52,12 @@ app.config["JWT_ACCESS_TOKEN_EXPIRES"] = 60 * 60
 app.debug = os.environ.get("DEBUG", False)
 app.logger.addHandler(logging.StreamHandler(sys.stdout))
 app.logger.setLevel(logging.ERROR)
-app.json_encoder = JSONEncoder  # For automatic Decimal support
+app.json = CustomJSONProvider(app)
 
 jwt = JWTManager(app)
 
 
 CORS(app, supports_credentials=True)
-
-
-class CustomJSONEncoder(JSONEncoder):
-    def default(self, obj):
-        try:
-            if isinstance(obj, date):
-                return obj.isoformat()
-            iterable = iter(obj)
-        except TypeError:
-            pass
-        else:
-            return list(iterable)
-        return JSONEncoder.default(self, obj)
-
-
-app.json_encoder = CustomJSONEncoder
 
 db = SQLAlchemy(app)
 bcrypt = Bcrypt(app)
