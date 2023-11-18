@@ -333,6 +333,15 @@ class UserManagementViewsTests(DBTest):
 
         self.assertEqual(response.status_code, 403)
 
+    @pytest.mark.usefixtures("app_ctx")
+    def test_list_users(self):
+        user: User = UserFactory.create(password="hunter2", email="my.user@example.org")
+        self._login_as_user(user)
+        response = self.app.get("/api/v1/users")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json, {"users": ["my.user@example.org"]})
+
 
 class SharesTests(AuthorizedTest):
     @pytest.mark.usefixtures("app_ctx")

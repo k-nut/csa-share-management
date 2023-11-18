@@ -149,13 +149,13 @@ class MemberTest(DBTest):
 
 class UserTest(DBTest):
     @pytest.mark.usefixtures("app_ctx")
-    def test_get_by_email(self):
+    def test_get_all_emails(self):
         UserFactory.create(email="user1@example.org")
         UserFactory.create(active=False, email="user2@example.org")
 
         emails = User.get_all_emails()
 
-        assert emails == [("user1@example.org",)]
+        assert emails == ["user1@example.org"]
 
     @pytest.mark.usefixtures("app_ctx")
     def test_authenticate_and_get_success(self):
