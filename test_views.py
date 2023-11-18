@@ -1,6 +1,7 @@
 from datetime import date, datetime
 from unittest.mock import patch
 
+import pytest
 from flask_jwt_extended import create_access_token
 
 from solawi.app import app, db
@@ -14,11 +15,11 @@ from test_factories import (
     StationFactory,
     UserFactory,
 )
-from test_helpers import AuthorizedTest, DBTest, with_app_context
+from test_helpers import AuthorizedTest, DBTest
 
 
 class AuthorizedViewsTests(AuthorizedTest):
-    @with_app_context
+    @pytest.mark.usefixtures("app_ctx")
     def test_share_emails_empty(self):
         share = ShareFactory.create()
 
@@ -27,7 +28,7 @@ class AuthorizedViewsTests(AuthorizedTest):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json, {"emails": []})
 
-    @with_app_context
+    @pytest.mark.usefixtures("app_ctx")
     def test_share_emails(self):
         member = MemberFactory.create(email="test@example.org")
         share = ShareFactory.create(members=[member])
@@ -38,7 +39,7 @@ class AuthorizedViewsTests(AuthorizedTest):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json, {"emails": expected})
 
-    @with_app_context
+    @pytest.mark.usefixtures("app_ctx")
     def test_members(self):
         member1 = MemberFactory.create(
             email="peter@example.org", name="Peter Farmer", phone="001234"
@@ -94,7 +95,7 @@ class AuthorizedViewsTests(AuthorizedTest):
         self.maxDiff = None
         self.assertEqual(response.json, {"members": expected})
 
-    @with_app_context
+    @pytest.mark.usefixtures("app_ctx")
     def test_members_expired(self):
         member1 = MemberFactory.create()
         member2 = MemberFactory.create()
@@ -113,7 +114,7 @@ class AuthorizedViewsTests(AuthorizedTest):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.json["members"]), 1)
 
-    @with_app_context
+    @pytest.mark.usefixtures("app_ctx")
     def test_create_member(self):
         member1 = MemberFactory.create(name="Paul Wild / Paula Wilder")
         share = ShareFactory.create(members=[member1])
@@ -128,7 +129,7 @@ class AuthorizedViewsTests(AuthorizedTest):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(updated_share.members), 2)
 
-    @with_app_context
+    @pytest.mark.usefixtures("app_ctx")
     def test_create_member_without_share(self):
         self.assertEqual(Member.query.count(), 0)
         self.assertEqual(Share.query.count(), 0)
@@ -140,7 +141,7 @@ class AuthorizedViewsTests(AuthorizedTest):
         self.assertEqual(Member.query.count(), 1)
         self.assertEqual(Share.query.count(), 1)
 
-    @with_app_context
+    @pytest.mark.usefixtures("app_ctx")
     def test_change_member(self):
         member = MemberFactory.create(name="Paul Wild / Paula Wilder")
 
@@ -153,7 +154,7 @@ class AuthorizedViewsTests(AuthorizedTest):
         self.assertEqual(updated_member.name, "Paul Wild")
         self.assertEqual(response.json["member"]["name"], "Paul Wild")
 
-    @with_app_context
+    @pytest.mark.usefixtures("app_ctx")
     def test_cannot_change_member_id(self):
         member = MemberFactory.create(name="Paul Wild / Paula Wilder")
 
@@ -162,7 +163,7 @@ class AuthorizedViewsTests(AuthorizedTest):
 
         self.assertEqual(response.status_code, 400)
 
-    @with_app_context
+    @pytest.mark.usefixtures("app_ctx")
     def test_delete_member(self):
         member = MemberFactory.create(name="Paul Wild")
 
@@ -175,7 +176,7 @@ class AuthorizedViewsTests(AuthorizedTest):
 
 
 class UnAuthorizedViewsTests(DBTest):
-    @with_app_context
+    @pytest.mark.usefixtures("app_ctx")
     def test_delete_bet_required_auth(self):
         bet: Bet = BetFactory.create()
         share = bet.share
@@ -187,7 +188,7 @@ class UnAuthorizedViewsTests(DBTest):
         self.assertEqual(response.status_code, 401)
         self.assertEqual(db.session.query(Bet).count(), 1)
 
-    @with_app_context
+    @pytest.mark.usefixtures("app_ctx")
     def test_login_success(self):
         UserFactory.create(email="user@example.org", password="supersecret")
 
@@ -198,7 +199,7 @@ class UnAuthorizedViewsTests(DBTest):
         self.assertEqual(response.status_code, 200)
         self.assertTrue(len(response.json["access_token"]) > 1)
 
-    @with_app_context
+    @pytest.mark.usefixtures("app_ctx")
     def test_login_no_user(self):
         response = self.app.post(
             "/api/v1/login", json={"email": "myuser@example.org", "password": "hunter2"}
@@ -207,7 +208,7 @@ class UnAuthorizedViewsTests(DBTest):
         self.assertEqual(response.status_code, 401)
         self.assertEqual(response.json, {"message": "login failed"})
 
-    @with_app_context
+    @pytest.mark.usefixtures("app_ctx")
     def test_login_wrong_password(self):
         UserFactory.create(email="user@example.org", password="supersecret")
 
@@ -218,7 +219,7 @@ class UnAuthorizedViewsTests(DBTest):
         self.assertEqual(response.status_code, 401)
         self.assertEqual(response.json, {"message": "login failed"})
 
-    @with_app_context
+    @pytest.mark.usefixtures("app_ctx")
     def test_login_not_active(self):
         UserFactory.create(email="user@example.org", password="supersecret", active=False)
 
@@ -238,7 +239,7 @@ class UserManagementViewsTests(DBTest):
                 "HTTP_AUTHORIZATION"
             ] = f"Bearer {create_access_token(identity=user.email)}"
 
-    @with_app_context
+    @pytest.mark.usefixtures("app_ctx")
     def test_modify_user(self):
         user: User = UserFactory.create(password="hunter2")
         self._login_as_user(user)
@@ -251,7 +252,7 @@ class UserManagementViewsTests(DBTest):
         updated_user = User.get(user.id)
         self.assertTrue(updated_user.check_password("a-password-of-appropriate-length"))
 
-    @with_app_context
+    @pytest.mark.usefixtures("app_ctx")
     def test_modify_user_requires_password(self):
         user: User = UserFactory.create(password="hunter2")
         self._login_as_user(user)
@@ -260,7 +261,7 @@ class UserManagementViewsTests(DBTest):
 
         self.assertEqual(response.status_code, 400)
 
-    @with_app_context
+    @pytest.mark.usefixtures("app_ctx")
     def test_modify_fails_if_too_short(self):
         user: User = UserFactory.create(email="user@example.org", password="hunter2")
         self._login_as_user(user)
@@ -273,7 +274,7 @@ class UserManagementViewsTests(DBTest):
         updated_user = User.get(user.id)
         self.assertTrue(updated_user.check_password("hunter2"))  # did not change own user
 
-    @with_app_context
+    @pytest.mark.usefixtures("app_ctx")
     def test_modify_other_user_fails(self):
         user: User = UserFactory.create(email="user@example.org", password="hunter2")
         another_user: User = UserFactory.create(password="supersecret", email="other@example.org")
@@ -294,7 +295,7 @@ class UserManagementViewsTests(DBTest):
             updated_other_user.check_password("supersecret")
         )  # did not change other user
 
-    @with_app_context
+    @pytest.mark.usefixtures("app_ctx")
     def test_modify_user_fails_for_unknown_user(self):
         user: User = UserFactory.create(password="hunter2")
         self._login_as_user(user)
@@ -305,7 +306,7 @@ class UserManagementViewsTests(DBTest):
 
         self.assertEqual(response.status_code, 403)
 
-    @with_app_context
+    @pytest.mark.usefixtures("app_ctx")
     def test_modify_user_updates_last_changed_date(self):
         user: User = UserFactory.create(password="hunter2")
         self._login_as_user(user)
@@ -321,7 +322,7 @@ class UserManagementViewsTests(DBTest):
         updated_user = User.get(user.id)
         self.assertEqual(updated_user.password_changed_at, date(2017, 3, 31))
 
-    @with_app_context
+    @pytest.mark.usefixtures("app_ctx")
     def test_get_shares_fails_if_user_has_expired_password(self):
         user: User = UserFactory.create(password="hunter2")
         user.password_changed_at = None
@@ -334,7 +335,7 @@ class UserManagementViewsTests(DBTest):
 
 
 class SharesTests(AuthorizedTest):
-    @with_app_context
+    @pytest.mark.usefixtures("app_ctx")
     def test_get_shares(self):
         bet = BetFactory.create(value=99)
         MemberFactory.create(share=bet.share, name="Tom Doe")
@@ -387,7 +388,7 @@ class SharesTests(AuthorizedTest):
 
 
 class PaymentStatusTests(AuthorizedTest):
-    @with_app_context
+    @pytest.mark.usefixtures("app_ctx")
     def test_get_shares(self):
         # The tests for making sure that the right amount is calculated for the
         # expected value are in test_models
@@ -426,7 +427,7 @@ class PaymentStatusTests(AuthorizedTest):
 
 
 class ShareDetailsTests(AuthorizedTest):
-    @with_app_context
+    @pytest.mark.usefixtures("app_ctx")
     def test_get_share_details(self):
         share = ShareFactory.create()
 
@@ -449,13 +450,13 @@ class ShareDetailsTests(AuthorizedTest):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json, expected)
 
-    @with_app_context
+    @pytest.mark.usefixtures("app_ctx")
     def test_get_share_details_404(self):
         response = self.app.get("/api/v1/shares/1337")
 
         self.assertEqual(response.status_code, 404)
 
-    @with_app_context
+    @pytest.mark.usefixtures("app_ctx")
     def test_patch_share(self):
         original_note = "My little note"
         share = ShareFactory.create(archived=False, note=original_note)
@@ -467,7 +468,7 @@ class ShareDetailsTests(AuthorizedTest):
         self.assertTrue(updated_share.archived)
         self.assertEqual(updated_share.note, original_note)
 
-    @with_app_context
+    @pytest.mark.usefixtures("app_ctx")
     def test_patch_share_validates_request(self):
         share = ShareFactory.create()
 
@@ -478,7 +479,7 @@ class ShareDetailsTests(AuthorizedTest):
 
 
 class BetDetailsTests(AuthorizedTest):
-    @with_app_context
+    @pytest.mark.usefixtures("app_ctx")
     def test_delete_bet(self):
         bet = BetFactory.create()
         share = bet.share
@@ -490,7 +491,7 @@ class BetDetailsTests(AuthorizedTest):
         self.assertEqual(response.status_code, 204)
         self.assertEqual(db.session.query(Bet).count(), 0)
 
-    @with_app_context
+    @pytest.mark.usefixtures("app_ctx")
     def test_delete_bet_unknown_bet(self):
         bet = BetFactory.create()
         share = bet.share
@@ -501,7 +502,7 @@ class BetDetailsTests(AuthorizedTest):
 
         self.assertEqual(response.status_code, 404)
 
-    @with_app_context
+    @pytest.mark.usefixtures("app_ctx")
     def test_post_bet_fails_on_additional_args(self):
         bet = BetFactory.create()
 
@@ -531,7 +532,7 @@ class BetDetailsTests(AuthorizedTest):
             },
         )
 
-    @with_app_context
+    @pytest.mark.usefixtures("app_ctx")
     def test_create_bet(self):
         share = ShareFactory.create()
         self.assertEqual(db.session.query(Bet).count(), 0)
@@ -547,7 +548,7 @@ class BetDetailsTests(AuthorizedTest):
         self.assertEqual(bet.start_date, datetime(2019, 1, 1, 0, 0))
         self.assertEqual(bet.end_date, None)
 
-    @with_app_context
+    @pytest.mark.usefixtures("app_ctx")
     def test_edit_bet(self):
         bet = BetFactory.create(value=20)
 
@@ -566,7 +567,7 @@ class BetDetailsTests(AuthorizedTest):
 
 
 class DepositTest(AuthorizedTest):
-    @with_app_context
+    @pytest.mark.usefixtures("app_ctx")
     def test_patch_deposit_success(self):
         deposit = DepositFactory.create(ignore=False)
 
@@ -578,7 +579,7 @@ class DepositTest(AuthorizedTest):
         self.assertTrue(updated_deposit.ignore)
         self.assertIs(updated_deposit.is_security, False)
 
-    @with_app_context
+    @pytest.mark.usefixtures("app_ctx")
     def test_patch_validates_payload(self):
         deposit = DepositFactory.create(ignore=False)
 
@@ -586,7 +587,7 @@ class DepositTest(AuthorizedTest):
 
         self.assertEqual(response.status_code, 400)
 
-    @with_app_context
+    @pytest.mark.usefixtures("app_ctx")
     def test_post_creates_new_entry(self):
         person = PersonFactory.create()
 

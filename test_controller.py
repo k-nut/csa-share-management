@@ -1,11 +1,14 @@
-from test_factories import BetFactory, MemberFactory, ShareFactory, StationFactory  # isort:skip
+import pytest
+
 from solawi.controller import merge
 from solawi.models import Bet, Member, Share
-from test_helpers import DBTest, with_app_context
+from test_helpers import DBTest
+
+from test_factories import BetFactory, MemberFactory, ShareFactory, StationFactory  # isort:skip
 
 
 class TestController(DBTest):
-    @with_app_context
+    @pytest.mark.usefixtures("app_ctx")
     def test_merge_one_way(self):
         share1 = ShareFactory.create()
         share2 = ShareFactory.create()
@@ -31,7 +34,7 @@ class TestController(DBTest):
         assert Member.query.count() == 3
         assert Bet.query.count() == 3
 
-    @with_app_context
+    @pytest.mark.usefixtures("app_ctx")
     def test_merge_other_way(self):
         share1 = ShareFactory.create()
         share2 = ShareFactory.create()
@@ -57,7 +60,7 @@ class TestController(DBTest):
         assert Member.query.count() == 3
         assert Bet.query.count() == 3
 
-    @with_app_context
+    @pytest.mark.usefixtures("app_ctx")
     def test_merge_keeps_station(self):
         station1 = StationFactory.create()
 
@@ -68,7 +71,7 @@ class TestController(DBTest):
 
         assert Share.query.one().station == station1
 
-    @with_app_context
+    @pytest.mark.usefixtures("app_ctx")
     def test_merge_keeps_station_other_way(self):
         station1 = StationFactory.create()
 
@@ -79,7 +82,7 @@ class TestController(DBTest):
 
         assert Share.query.one().station == station1
 
-    @with_app_context
+    @pytest.mark.usefixtures("app_ctx")
     def test_merge_picks_first_station(self):
         station1 = StationFactory.create()
         station2 = StationFactory.create()
@@ -91,7 +94,7 @@ class TestController(DBTest):
 
         assert Share.query.one().station == station1
 
-    @with_app_context
+    @pytest.mark.usefixtures("app_ctx")
     def test_merge_merges_note_1(self):
         share1 = ShareFactory.create(note="Note 1")
         share2 = ShareFactory.create(note="Note 2")
@@ -100,7 +103,7 @@ class TestController(DBTest):
 
         assert Share.query.one().note == "Note 1 \n --- \n Note 2"
 
-    @with_app_context
+    @pytest.mark.usefixtures("app_ctx")
     def test_merge_merges_note_2(self):
         share1 = ShareFactory.create()
         share2 = ShareFactory.create(note="Note 2")
@@ -109,7 +112,7 @@ class TestController(DBTest):
 
         assert Share.query.one().note == "Note 2"
 
-    @with_app_context
+    @pytest.mark.usefixtures("app_ctx")
     def test_merge_merges_note_3(self):
         share1 = ShareFactory.create(note="Note 1")
         share2 = ShareFactory.create()
@@ -118,7 +121,7 @@ class TestController(DBTest):
 
         assert Share.query.one().note == "Note 1"
 
-    @with_app_context
+    @pytest.mark.usefixtures("app_ctx")
     def test_merge_merges_note_4(self):
         share1 = ShareFactory.create()
         share2 = ShareFactory.create()

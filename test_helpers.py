@@ -1,19 +1,11 @@
 import os
 import unittest
 
-import decorator
+import pytest
 from flask_jwt_extended import create_access_token
 
 from solawi.app import app, db
 from test_factories import UserFactory
-
-
-def with_app_context(func):
-    def wrapper(func, *args, **kwargs):
-        with app.app_context():
-            return func(*args, **kwargs)
-
-    return decorator.decorator(wrapper, func)
 
 
 class DBTest(unittest.TestCase):
@@ -42,7 +34,7 @@ class DBTest(unittest.TestCase):
 
 
 class AuthorizedTest(DBTest):
-    @with_app_context
+    @pytest.mark.usefixtures("app_ctx")
     def setUp(self):
         super().setUp()
         self.app = app.test_client()

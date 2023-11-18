@@ -1,13 +1,15 @@
 import datetime
 
+import pytest
+
 from solawi.commands import _split_deposits
 from solawi.models import Deposit, Person
 from test_factories import DepositFactory, PersonFactory, ShareFactory
-from test_helpers import DBTest, with_app_context
+from test_helpers import DBTest
 
 
 class TestCommands(DBTest):
-    @with_app_context
+    @pytest.mark.usefixtures("app_ctx")
     def test_split_deposits(self):
         # Arrange
         share1 = ShareFactory.create()
