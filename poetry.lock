@@ -453,17 +453,17 @@ Six = "*"
 
 [[package]]
 name = "flask-jwt-extended"
-version = "4.5.2"
+version = "4.5.3"
 description = "Extended JWT integration with Flask"
 optional = false
 python-versions = ">=3.7,<4"
 files = [
-    {file = "Flask-JWT-Extended-4.5.2.tar.gz", hash = "sha256:ba56245ba43b71c8ae936784b867625dce8b9956faeedec2953222e57942fb0b"},
-    {file = "Flask_JWT_Extended-4.5.2-py2.py3-none-any.whl", hash = "sha256:e0ef23d8c863746bd141046167073699e1a7b03c97169cbba70f05b8d9cd6b9e"},
+    {file = "Flask-JWT-Extended-4.5.3.tar.gz", hash = "sha256:061ef3d25ed5743babe4964ab38f36d870e6d2fd8a126bab5d77ddef8a01932b"},
+    {file = "Flask_JWT_Extended-4.5.3-py2.py3-none-any.whl", hash = "sha256:eaec42af107dcb919785a4b3766c09ffba9f286b92a8d58603933f28fd4db6a3"},
 ]
 
 [package.dependencies]
-Flask = ">=2.0,<3.0"
+Flask = ">=2.0,<4.0"
 PyJWT = ">=2.0,<3.0"
 Werkzeug = ">=0.14"
 
