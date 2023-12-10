@@ -5,6 +5,7 @@ Revises: ccbd861dc9ff
 Create Date: 2018-03-16 09:42:49.721830
 
 """
+from sqlalchemy import text
 
 # revision identifiers, used by Alembic.
 revision = '56a234140efd'
@@ -27,12 +28,12 @@ def upgrade():
     )
     connection = op.get_bind()
 
-    connection.execute("""
+    connection.execute(text("""
     INSERT INTO bet(start_date, end_date, value, share_id)
     SELECT start_date, '2017-12-31'::date, bet_value, id
     FROM share
     RETURNING id
-    """)
+    """))
 
     op.drop_column('share', 'bet_value')
     op.drop_column('share', 'start_date')

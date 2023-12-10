@@ -3,6 +3,7 @@ import unittest
 
 import pytest
 from flask_jwt_extended import create_access_token
+from sqlalchemy import text
 
 from solawi.app import app, db
 from test_factories import UserFactory
@@ -20,7 +21,7 @@ class DBTest(unittest.TestCase):
     def tearDownClass(cls):
         with app.app_context():
             db.drop_all()
-            db.engine.execute("DROP TABLE if exists alembic_version")
+            db.engine.execute(text("DROP TABLE if exists alembic_version"))
 
     def setUp(self):
         self.app = app.test_client()
