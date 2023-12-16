@@ -29,7 +29,7 @@ class DBTest(unittest.TestCase):
         with app.app_context():
             with db.engine.connect() as connection:
                 for table in reversed(db.metadata.sorted_tables):
-                    connection.execute(table.delete())
+                    db.session.query(table).delete()
                 db.session.commit()
                 db.session.remove()
 
