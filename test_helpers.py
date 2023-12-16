@@ -21,17 +21,17 @@ class DBTest(unittest.TestCase):
     def tearDownClass(cls):
         with app.app_context():
             db.drop_all()
-            db.engine.execute(text("DROP TABLE if exists alembic_version"))
 
     def setUp(self):
         self.app = app.test_client()
 
     def tearDown(self):
         with app.app_context():
-            for table in reversed(db.metadata.sorted_tables):
-                db.engine.execute(table.delete())
-            db.session.commit()
-            db.session.remove()
+            with db.engine.connect() as connection:
+                for table in reversed(db.metadata.sorted_tables):
+                    connection.execute(table.delete())
+                db.session.commit()
+                db.session.remove()
 
 
 class AuthorizedTest(DBTest):
