@@ -3,7 +3,6 @@ import unittest
 
 import pytest
 from flask_jwt_extended import create_access_token
-from sqlalchemy import text
 
 from solawi.app import app, db
 from test_factories import UserFactory
@@ -27,11 +26,10 @@ class DBTest(unittest.TestCase):
 
     def tearDown(self):
         with app.app_context():
-            with db.engine.connect() as connection:
-                for table in reversed(db.metadata.sorted_tables):
-                    db.session.query(table).delete()
-                db.session.commit()
-                db.session.remove()
+            for table in reversed(db.metadata.sorted_tables):
+                db.session.query(table).delete()
+            db.session.commit()
+            db.session.remove()
 
 
 class AuthorizedTest(DBTest):
