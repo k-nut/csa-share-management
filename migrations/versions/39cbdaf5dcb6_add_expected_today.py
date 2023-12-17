@@ -5,6 +5,7 @@ Revises: 56a234140efd
 Create Date: 2018-03-17 10:48:07.552895
 
 """
+from sqlalchemy import text
 
 # revision identifiers, used by Alembic.
 revision = '39cbdaf5dcb6'
@@ -18,8 +19,8 @@ from sqlalchemy.dialects import postgresql
 def upgrade():
     connection = op.get_bind()
 
-    connection.execute("DROP FUNCTION if exists expected_today(int);")
-    connection.execute("""
+    connection.execute(text("DROP FUNCTION if exists expected_today(int);"))
+    connection.execute(text("""
     CREATE OR REPLACE FUNCTION expected_today (the_id int) RETURNS FLOAT AS $$
 SELECT sum(bets.expected) FROM (
   SELECT 
@@ -29,7 +30,7 @@ SELECT sum(bets.expected) FROM (
 ) bets; 
 $$
 LANGUAGE SQL;
-    """)
+    """))
 
 
 def downgrade():

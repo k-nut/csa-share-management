@@ -5,6 +5,7 @@ Revises: bad0fbb450c4
 Create Date: 2021-01-17 11:08:10.649064
 
 """
+from sqlalchemy import text
 
 # revision identifiers, used by Alembic.
 
@@ -24,6 +25,6 @@ def upgrade():
 def downgrade():
     connection = op.get_bind()
 
-    connection.execute("""
+    connection.execute(text("""
     DROP FUNCTION get_expected_today(IN start_date date, IN end_date date, IN amount decimal, OUT amount_due decimal);
-    """)
+    """))

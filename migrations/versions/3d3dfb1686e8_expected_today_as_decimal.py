@@ -5,6 +5,7 @@ Revises: 39cbdaf5dcb6
 Create Date: 2018-04-22 10:40:29.272517
 
 """
+from sqlalchemy import text
 
 # revision identifiers, used by Alembic.
 revision = '3d3dfb1686e8'
@@ -17,8 +18,8 @@ import sqlalchemy as sa
 def upgrade():
     connection = op.get_bind()
 
-    connection.execute("DROP FUNCTION if exists expected_today(int);")
-    connection.execute("""
+    connection.execute(text("DROP FUNCTION if exists expected_today(int);"))
+    connection.execute(text("""
 CREATE OR REPLACE FUNCTION expected_today (the_id int) RETURNS DECIMAL AS $$
 SELECT sum(bets.expected) FROM (
   SELECT
@@ -32,7 +33,7 @@ SELECT sum(bets.expected) FROM (
 ) bets;
 $$
 LANGUAGE SQL;
-""")
+"""))
 
 
 def downgrade():

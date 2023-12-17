@@ -20,7 +20,6 @@ class DBTest(unittest.TestCase):
     def tearDownClass(cls):
         with app.app_context():
             db.drop_all()
-            db.engine.execute("DROP TABLE if exists alembic_version")
 
     def setUp(self):
         self.app = app.test_client()
@@ -28,7 +27,7 @@ class DBTest(unittest.TestCase):
     def tearDown(self):
         with app.app_context():
             for table in reversed(db.metadata.sorted_tables):
-                db.engine.execute(table.delete())
+                db.session.query(table).delete()
             db.session.commit()
             db.session.remove()
 

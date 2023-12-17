@@ -5,6 +5,7 @@ Revises: 3e031fc645ae
 Create Date: 2018-03-05 15:35:18.770873
 
 """
+from sqlalchemy import text
 
 # revision identifiers, used by Alembic.
 revision = 'ccbd861dc9ff'
@@ -16,8 +17,8 @@ import sqlalchemy as sa
 
 def upgrade():
     conn = op.get_bind()
-    conn.execute("UPDATE deposit set is_security = FALSE where is_security is NULL")
-    conn.execute("UPDATE deposit set ignore = FALSE where ignore is NULL")
+    conn.execute(text("UPDATE deposit set is_security = FALSE where is_security is NULL"))
+    conn.execute(text("UPDATE deposit set ignore = FALSE where ignore is NULL"))
 
 
 def downgrade():

@@ -95,8 +95,8 @@ class Bet(db.Model, BaseModel):
         return (not self.end_date) or (self.end_date.date() > datetime.date.today())
 
     def expected_at(self, date):
-        if date:
-            return db.engine.execute(
+        with db.engine.connect() as connection:
+            return connection.execute(
                 text(
                     """
               SELECT get_expected_today(bet.start_date::date,
@@ -111,23 +111,22 @@ class Bet(db.Model, BaseModel):
                 {"date": date, "id": self.id},
             ).scalar()
 
-        return db.engine.execute(
-            text(
-                """
-          SELECT get_expected_today(bet.start_date::date,
-                                    bet.end_date::date,
-                                    bet.value
-                                   )
-          from bet
-          where bet.id = :id
-          """
-            ),
-            {"id": self.id},
-        ).scalar()
-
     @property
     def expected_today(self):
-        return self.expected_at(None)
+        with db.engine.connect() as connection:
+            return connection.execute(
+                text(
+                    """
+              SELECT get_expected_today(bet.start_date::date,
+                                        bet.end_date::date,
+                                        bet.value
+                                       )
+              from bet
+              where bet.id = :id
+              """
+                ),
+                {"id": self.id},
+            ).scalar()
 
 
 class Share(db.Model, BaseModel):
@@ -241,26 +240,29 @@ class Share(db.Model, BaseModel):
         transferred between database and client in order to speed
         up the overall performance of the API.
         """
-        result = db.engine.execute(
-            """
-        select person.share_id,
-               sum(amount) filter (where not deposit.is_security) as total_deposits,
-               sum(amount) filter (where deposit.is_security) as total_security,
-               count(*) as number_of_deposits
-        from deposit
-        join person on person.id = deposit.person_id
-        where not deposit.ignore
-        group by person.share_id
-"""
-        )
-        return {
-            row.share_id: {
-                "number_of_deposits": row.number_of_deposits,
-                "total_deposits": row.total_deposits,
-                "total_security": row.total_security,
+        with db.engine.connect() as connection:
+            result = connection.execute(
+                text(
+                    """
+            select person.share_id,
+                   sum(amount) filter (where not deposit.is_security) as total_deposits,
+                   sum(amount) filter (where deposit.is_security) as total_security,
+                   count(*) as number_of_deposits
+            from deposit
+            join person on person.id = deposit.person_id
+            where not deposit.ignore
+            group by person.share_id
+    """
+                )
+            )
+            return {
+                row.share_id: {
+                    "number_of_deposits": row.number_of_deposits,
+                    "total_deposits": row.total_deposits,
+                    "total_security": row.total_security,
+                }
+                for row in result
             }
-            for row in result
-        }
 
     @staticmethod
     def get_expected_amount_map() -> dict[int, (Decimal or None)]:
@@ -274,19 +276,22 @@ class Share(db.Model, BaseModel):
         where the dictionary value is the amount of money that we
         expect this share to have paid by today.
         """
-        result = db.engine.execute(
+        with db.engine.connect() as connection:
+            result = connection.execute(
+                text(
+                    """
+            SELECT share_id,
+              SUM(
+                get_expected_today(bet.start_date::date,
+                                   bet.end_date::date,
+                                   bet.value
+                                   )
+              ) as expected_today from bet
+            group by share_id;
             """
-        SELECT share_id,
-          SUM(
-            get_expected_today(bet.start_date::date,
-                               bet.end_date::date,
-                               bet.value
-                               )
-          ) as expected_today from bet
-        group by share_id;
-        """
-        )
-        return {row.share_id: row.expected_today for row in result}
+                )
+            )
+            return {row.share_id: row.expected_today for row in result}
 
 
 class Station(db.Model, BaseModel):
