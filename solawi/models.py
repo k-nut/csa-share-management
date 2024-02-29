@@ -1,5 +1,3 @@
-""" the models """
-
 import datetime
 from datetime import date
 from decimal import Decimal
