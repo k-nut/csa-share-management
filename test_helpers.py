@@ -39,6 +39,6 @@ class AuthorizedTest(DBTest):
         self.app = app.test_client()
         user = UserFactory.create()
         with app.app_context():
-            self.app.environ_base[
-                "HTTP_AUTHORIZATION"
-            ] = f"Bearer {create_access_token(identity=user.email)}"
+            self.app.environ_base["HTTP_AUTHORIZATION"] = (
+                f"Bearer {create_access_token(identity=user.email)}"
+            )
