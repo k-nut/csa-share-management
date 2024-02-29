@@ -235,9 +235,9 @@ class UserManagementViewsTests(DBTest):
     def _login_as_user(self, user):
         self.app = app.test_client()
         with app.app_context():
-            self.app.environ_base[
-                "HTTP_AUTHORIZATION"
-            ] = f"Bearer {create_access_token(identity=user.email)}"
+            self.app.environ_base["HTTP_AUTHORIZATION"] = (
+                f"Bearer {create_access_token(identity=user.email)}"
+            )
 
     @pytest.mark.usefixtures("app_ctx")
     def test_modify_user(self):
