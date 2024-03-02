@@ -7,10 +7,9 @@ from typing import Optional
 from flask import Blueprint, current_app, jsonify, request
 from flask_jwt_extended import create_access_token, get_jwt_identity, verify_jwt_in_request
 from flask_pydantic import validate
-from pydantic import Extra
-from pydantic.main import BaseModel
-from pydantic.types import constr
+from pydantic import BaseModel, ConfigDict, StringConstraints
 from sqlalchemy.orm import joinedload
+from typing_extensions import Annotated
 
 from solawi import models
 from solawi.app import app, db
@@ -85,11 +84,12 @@ def member_list():
     return jsonify(members=result)
 
 
-class MemberSchema(BaseModel, extra=Extra.forbid):
+class MemberSchema(BaseModel):
+    model_config = ConfigDict(extra="forbid")
     name: str
-    share_id: Optional[int]
-    email: Optional[str]
-    phone: Optional[str]
+    share_id: Optional[int] = None
+    email: Optional[str] = None
+    phone: Optional[str] = None
 
 
 @api.route("/members", methods=["POST"])
@@ -107,7 +107,7 @@ def post_member(body: MemberSchema):
 
 
 class MemberPatchSchema(MemberSchema):
-    name: Optional[str]
+    name: Optional[str] = None
 
 
 @api.route("/members/<int:member_id>", methods=["PATCH"])
@@ -115,7 +115,7 @@ class MemberPatchSchema(MemberSchema):
 @validate()
 def patch_member(body: MemberPatchSchema, member_id: int):
     member = Member.get(member_id)
-    json = body.dict()
+    json = body.model_dump()
     for key, value in json.items():
         if value is not None:
             setattr(member, key, value)
@@ -197,17 +197,19 @@ def share_bets(share_id: int):
     return jsonify(bets=bets)
 
 
-class BetSchema(BaseModel, extra=Extra.forbid):
+class BetSchema(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
     value: Decimal
     start_date: date
-    end_date: Optional[date]
+    end_date: Optional[date] = None
 
 
 @api.route("/shares/<int:share_id>/bets", methods=["POST"])
 @validate()
 @login_required()
 def post_bet(body: BetSchema, share_id: int):
-    bet = Bet(share_id=share_id, **body.dict())
+    bet = Bet(share_id=share_id, **body.model_dump())
     bet.save()
     return jsonify(bet=bet.json)
 
@@ -217,7 +219,7 @@ def post_bet(body: BetSchema, share_id: int):
 @login_required()
 def put_bet(body: BetSchema, bet_id: int):
     bet = Bet.query.get_or_404(bet_id)
-    json = body.dict()
+    json = body.model_dump()
 
     for key, value in json.items():
         setattr(bet, key, value)
@@ -234,9 +236,11 @@ def delete_bet(share_id: int, bet_id: int):
     return jsonify(), 204
 
 
-class SharePatchSchema(BaseModel, extra=Extra.forbid):
-    note: Optional[str]
-    archived: Optional[bool]
+class SharePatchSchema(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    note: Optional[str] = None
+    archived: Optional[bool] = None
 
 
 @api.patch("/shares/<int:share_id>")
@@ -244,7 +248,7 @@ class SharePatchSchema(BaseModel, extra=Extra.forbid):
 @validate()
 def patch_share(body: SharePatchSchema, share_id: int):
     share = Share.get(share_id)
-    for key, value in body.dict(exclude_unset=True).items():
+    for key, value in body.model_dump(exclude_unset=True).items():
         setattr(share, key, value)
     share.save()
     resp = share.json
@@ -254,8 +258,8 @@ def patch_share(body: SharePatchSchema, share_id: int):
 class ShareSchema(BaseModel):
     id: str
     station_id: int
-    note: Optional[str]
-    archived: Optional[bool]
+    note: Optional[str] = None
+    archived: Optional[bool] = None
 
 
 @api.route("/shares/<int:share_id>", methods=["POST"])
@@ -263,7 +267,7 @@ class ShareSchema(BaseModel):
 @validate()
 def post_shares_details(body: ShareSchema, share_id: int):
     share = Share.get(share_id)
-    json = body.dict()
+    json = body.model_dump()
     for field in ["station_id", "note", "archived"]:
         if field in json:
             setattr(share, field, json.get(field))
@@ -283,9 +287,11 @@ def add_share():
     return jsonify(share=share.json), 201
 
 
-class DepositPatchSchema(BaseModel, extra=Extra.forbid):
-    ignore: Optional[bool]
-    is_security: Optional[bool]
+class DepositPatchSchema(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    ignore: Optional[bool] = None
+    is_security: Optional[bool] = None
 
 
 @api.patch("/deposits/<int:deposit_id>")
@@ -293,7 +299,7 @@ class DepositPatchSchema(BaseModel, extra=Extra.forbid):
 @validate()
 def patch_deposit(body: DepositPatchSchema, deposit_id: int):
     deposit = Deposit.get(deposit_id)
-    json = body.dict(exclude_unset=True)
+    json = body.model_dump(exclude_unset=True)
     for field in json:
         setattr(deposit, field, json.get(field))
     deposit.save()
@@ -301,7 +307,7 @@ def patch_deposit(body: DepositPatchSchema, deposit_id: int):
 
 
 class DepositSchema(DepositPatchSchema):
-    amount: str
+    amount: float
     timestamp: str
     title: str
     person_id: int
@@ -314,7 +320,7 @@ def post_deposit(body: DepositSchema):
     current_user_email = get_jwt_identity()
     current_user = User.query.filter(User.email == current_user_email).one()
     deposit = Deposit(added_by=current_user.id)
-    json = body.dict()
+    json = body.model_dump()
     for field in json:
         setattr(deposit, field, json.get(field))
     deposit.save()
@@ -348,7 +354,7 @@ def user_list():
 
 
 class PatchUserModel(BaseModel):
-    password: constr(min_length=14)
+    password: Annotated[str, StringConstraints(min_length=14)]
 
 
 @api.route("/users/<int:id>", methods=["PATCH"])

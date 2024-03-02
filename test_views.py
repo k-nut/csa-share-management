@@ -92,7 +92,6 @@ class AuthorizedViewsTests(AuthorizedTest):
         response = self.app.get("/api/v1/members")
 
         self.assertEqual(response.status_code, 200)
-        self.maxDiff = None
         self.assertEqual(response.json, {"members": expected})
 
     @pytest.mark.usefixtures("app_ctx")
@@ -532,9 +531,11 @@ class BetDetailsTests(AuthorizedTest):
                 "validation_error": {
                     "body_params": [
                         {
+                            "input": 12,
                             "loc": ["share_id"],
-                            "msg": "extra fields not permitted",
-                            "type": "value_error.extra",
+                            "msg": "Extra inputs are not permitted",
+                            "type": "extra_forbidden",
+                            "url": "https://errors.pydantic.dev/2.5/v/extra_forbidden",
                         }
                     ]
                 }
