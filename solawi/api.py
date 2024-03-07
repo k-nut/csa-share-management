@@ -256,7 +256,7 @@ def patch_share(body: SharePatchSchema, share_id: int):
 
 
 class ShareSchema(BaseModel):
-    id: str
+    id: int
     station_id: int
     note: Optional[str] = None
     archived: Optional[bool] = None
