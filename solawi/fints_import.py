@@ -29,7 +29,7 @@ def import_fin_ts(is_interactive):
         os.environ.get("CSA_ACCOUNT_BLZ"),
         os.environ.get("CSA_ACCOUNT_USERNAME"),
         os.environ.get("CSA_ACCOUNT_PASSWORD"),
-        "https://hbci-pintan.gad.de/cgi-bin/hbciservlet",
+        os.environ.get("CSA_HBCI_ADDRESS"),
         mode=FinTSClientMode.INTERACTIVE,
         product_id=os.environ.get("CSA_HBCI_PRODUCT_ID", None),
     )
