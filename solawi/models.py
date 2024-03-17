@@ -2,7 +2,7 @@ import datetime
 from datetime import date
 from decimal import Decimal
 
-from sqlalchemy import UniqueConstraint, func, text
+from sqlalchemy import Index, func, text
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import class_mapper
@@ -66,7 +66,23 @@ class Deposit(db.Model, BaseModel):
     person_id = db.Column(db.Integer, db.ForeignKey("person.id"))
 
     __table_args__ = (
-        UniqueConstraint("timestamp", "amount", "title", "person_id", name="_all_fields"),
+        Index(
+            "_all_fields_without_null_title",
+            "timestamp",
+            "amount",
+            "title",
+            "person_id",
+            unique=True,
+            postgresql_where=(title.isnot(None)),
+        ),
+        Index(
+            "_all_fields_with_null_title",
+            "timestamp",
+            "amount",
+            "person_id",
+            unique=True,
+            postgresql_where=(title.is_(None)),
+        ),
     )
 
     def __repr__(self):
