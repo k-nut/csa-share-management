@@ -1,4 +1,4 @@
-from datetime import date, datetime
+from datetime import date
 from unittest.mock import patch
 
 import pytest
@@ -67,7 +67,7 @@ class AuthorizedViewsTests(AuthorizedTest):
                 "phone": "001234",
                 "share_id": share1.id,
                 "station_name": "Station 1",
-                "join_date": "2018-01-01T00:00:00",
+                "join_date": "2018-01-01",
             },
             {
                 "email": "paula@example.org",
@@ -76,7 +76,7 @@ class AuthorizedViewsTests(AuthorizedTest):
                 "phone": "001234",
                 "share_id": share1.id,
                 "station_name": "Station 1",
-                "join_date": "2018-01-01T00:00:00",
+                "join_date": "2018-01-01",
             },
             {
                 "email": "jane@example.org",
@@ -85,7 +85,7 @@ class AuthorizedViewsTests(AuthorizedTest):
                 "phone": "0055689",
                 "share_id": share2.id,
                 "station_name": "Station 2",
-                "join_date": "2019-01-15T00:00:00",
+                "join_date": "2019-01-15",
             },
         ]
 
@@ -362,7 +362,7 @@ class SharesTests(AuthorizedTest):
                             "end_date": None,
                             "id": 1,
                             "share_id": 1,
-                            "start_date": "2018-01-01T00:00:00",
+                            "start_date": "2018-01-01",
                             "value": 99,
                         }
                     ],
@@ -378,7 +378,7 @@ class SharesTests(AuthorizedTest):
                             "end_date": None,
                             "id": 2,
                             "share_id": 2,
-                            "start_date": "2018-01-01T00:00:00",
+                            "start_date": "2018-01-01",
                             "value": 102,
                         }
                     ],
@@ -516,7 +516,7 @@ class BetDetailsTests(AuthorizedTest):
 
         payload = {
             "value": 99,
-            "start_date": bet.start_date.strftime("%Y-%m-%d"),
+            "start_date": bet.start_date,
             "share_id": 12,  # this is not allowed and should trigger a 400
         }
 
@@ -555,7 +555,7 @@ class BetDetailsTests(AuthorizedTest):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(db.session.query(Bet).count(), 1)
         self.assertEqual(bet.value, 99)
-        self.assertEqual(bet.start_date, datetime(2019, 1, 1, 0, 0))
+        self.assertEqual(bet.start_date, date(2019, 1, 1))
         self.assertEqual(bet.end_date, None)
 
     @pytest.mark.usefixtures("app_ctx")
