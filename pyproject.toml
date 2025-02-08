@@ -31,7 +31,7 @@ sentry-sdk = {extras = ["flask", "sqlalchemy"], version = "*"}
 python-dateutil = "*"
 Flask-Pydantic = "*"
 
-[tool.poetry.dev-dependencies]
+[tool.poetry.group.dev.dependencies]
 pytest = "*"
 factory-boy = "*"
 pytest-cov = "*"
