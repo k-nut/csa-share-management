@@ -43,7 +43,7 @@ jobs:
 
       - name: Install dependencies with Poetry
         run: |
-          poetry install --no-root
+          poetry install
 
       - run: |
           poetry run pip install codecov
