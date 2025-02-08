@@ -173,7 +173,7 @@ def get_stations():
 @api.route("/shares/<int:share_id>", methods=["GET"])
 @login_required()
 def shares_details(share_id: int):
-    share = Share.query.get_or_404(share_id)
+    share = db.get_or_404(Share, share_id)
     dict_share = share.json
     dict_share["expected_today"] = share.expected_today
     dict_share["total_deposits"] = share.total_deposits or 0
@@ -218,7 +218,7 @@ def post_bet(body: BetSchema, share_id: int):
 @validate()
 @login_required()
 def put_bet(body: BetSchema, bet_id: int):
-    bet = Bet.query.get_or_404(bet_id)
+    bet = db.get_or_404(Bet, bet_id)
     json = body.model_dump()
 
     for key, value in json.items():
@@ -231,7 +231,7 @@ def put_bet(body: BetSchema, bet_id: int):
 @api.route("/shares/<int:share_id>/bets/<int:bet_id>", methods=["DELETE"])
 @login_required()
 def delete_bet(share_id: int, bet_id: int):
-    bet = Bet.query.get_or_404(bet_id)
+    bet = db.get_or_404(Bet, bet_id)
     bet.delete()
     return jsonify(), 204
 

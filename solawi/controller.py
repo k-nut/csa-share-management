@@ -10,8 +10,8 @@ def merge(first_share_id, second_share_id):
     if not first_share_id or not second_share_id:
         return None
 
-    first_share = Share.query.get(first_share_id)
-    second_share = Share.query.get(second_share_id)
+    first_share = Share.get(first_share_id)
+    second_share = Share.get(second_share_id)
 
     first_share.people += list(second_share.people)
     first_share.members += list(second_share.members)

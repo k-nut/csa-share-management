@@ -33,7 +33,7 @@ class BaseModel:
 
     @classmethod
     def get(cls, id):
-        return db.session.query(cls).get(id)
+        return db.session.get(cls, id)
 
     @property
     def json(self):
@@ -366,10 +366,6 @@ class User(db.Model, BaseModel):
     @staticmethod
     def get_all_emails() -> list[str]:
         return [email for email, in db.session.query(User.email).filter(User.active).all()]
-
-    @staticmethod
-    def get(id):
-        return db.session.query(User).get(id)
 
     @staticmethod
     def get_by_email(email):
