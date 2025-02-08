@@ -3,6 +3,7 @@ from unittest.mock import patch
 
 import pytest
 from flask_jwt_extended import create_access_token
+from sqlalchemy import func, select
 
 from solawi.app import app, db
 from solawi.models import Bet, Deposit, Member, Share, User
@@ -492,19 +493,19 @@ class BetDetailsTests(AuthorizedTest):
         bet = BetFactory.create()
         share = bet.share
 
-        self.assertEqual(db.session.query(Bet).count(), 1)
+        self.assertEqual(db.session.scalar(select(func.count(Bet.id))), 1)
 
         response = self.app.delete(f"/api/v1/shares/{share.id}/bets/{bet.id}")
 
         self.assertEqual(response.status_code, 204)
-        self.assertEqual(db.session.query(Bet).count(), 0)
+        self.assertEqual(db.session.scalar(select(func.count(Bet.id))), 0)
 
     @pytest.mark.usefixtures("app_ctx")
     def test_delete_bet_unknown_bet(self):
         bet = BetFactory.create()
         share = bet.share
 
-        self.assertEqual(db.session.query(Bet).count(), 1)
+        self.assertEqual(db.session.scalar(select(func.count(Bet.id))), 1)
 
         response = self.app.delete(f"/api/v1/shares/{share.id}/bets/{bet.id + 1}")
 
@@ -520,7 +521,7 @@ class BetDetailsTests(AuthorizedTest):
             "share_id": 12,  # this is not allowed and should trigger a 400
         }
 
-        self.assertEqual(db.session.query(Bet).count(), 1)
+        self.assertEqual(db.session.scalar(select(func.count(Bet.id))), 1)
 
         response = self.app.put(f"/api/v1/bets/{bet.id}", json=payload)
 
@@ -551,9 +552,9 @@ class BetDetailsTests(AuthorizedTest):
             f"/api/v1/shares/{share.id}/bets", json={"value": "99", "start_date": "2019-01-01"}
         )
 
-        bet = db.session.query(Bet).first()
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(db.session.query(Bet).count(), 1)
+        self.assertEqual(db.session.scalar(select(func.count(Bet.id))), 1)
+        bet = db.session.scalars(select(Bet).limit(1)).first()
         self.assertEqual(bet.value, 99)
         self.assertEqual(bet.start_date, date(2019, 1, 1))
         self.assertEqual(bet.end_date, None)
@@ -569,8 +570,9 @@ class BetDetailsTests(AuthorizedTest):
         response = self.app.put(f"/api/v1/bets/{bet.id}", json=payload)
 
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(db.session.query(Bet).count(), 1)
-        updated_bet = db.session.query(Bet).first()
+        bet_count = db.session.scalar(select(func.count(Bet.id)))
+        self.assertEqual(bet_count, 1)
+        updated_bet = db.session.scalar(select(Bet))
         self.assertEqual(updated_bet.value, 99.50)
         self.assertEqual(updated_bet.start_date, bet.start_date)
         self.assertEqual(updated_bet.end_date, bet.end_date)
