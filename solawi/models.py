@@ -100,22 +100,21 @@ class Deposit(db.Model, BaseModel):
 class Bet(db.Model, BaseModel):
     id = db.Column(db.Integer, primary_key=True)  # pylint: disable=invalid-name
     value = db.Column(db.Numeric, nullable=False)
-    # TODO: Turn into Date, not DateTime
-    start_date = db.Column(db.DateTime, nullable=False)
-    end_date = db.Column(db.DateTime)
+    start_date: date = db.Column(db.Date, nullable=False)
+    end_date: date = db.Column(db.Date)
     share_id = db.Column(db.Integer, db.ForeignKey("share.id"), nullable=False)
 
     @property
     def currently_active(self):
-        return (not self.end_date) or (self.end_date.date() > datetime.date.today())
+        return (not self.end_date) or (self.end_date > datetime.date.today())
 
     def expected_at(self, date):
         with db.engine.connect() as connection:
             return connection.execute(
                 text(
                     """
-              SELECT get_expected_today(bet.start_date::date,
-                                        bet.end_date::date,
+              SELECT get_expected_today(bet.start_date,
+                                        bet.end_date,
                                         bet.value,
                                         :date
                                        )
@@ -132,8 +131,8 @@ class Bet(db.Model, BaseModel):
             return connection.execute(
                 text(
                     """
-              SELECT get_expected_today(bet.start_date::date,
-                                        bet.end_date::date,
+              SELECT get_expected_today(bet.start_date,
+                                        bet.end_date,
                                         bet.value
                                        )
               from bet

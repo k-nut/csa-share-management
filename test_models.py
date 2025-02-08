@@ -58,7 +58,7 @@ class BetTest(DBTest):
         bet = BetFactory(share=share)
 
         expected = {
-            "start_date": datetime(2018, 1, 1, 0, 0),
+            "start_date": date(2018, 1, 1),
             "end_date": None,
             "id": bet.id,
             "value": Decimal("90"),
@@ -114,7 +114,7 @@ class ShareTest(DBTest):
         BetFactory(share=share, start_date=date(2019, 1, 1))
         BetFactory(share=share, start_date=date(2018, 1, 1), end_date=date(2018, 12, 31))
 
-        assert share.join_date == datetime(2018, 1, 1)
+        assert share.join_date == date(2018, 1, 1)
 
 
 class PersonTest(DBTest):
