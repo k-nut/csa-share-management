@@ -559,14 +559,14 @@ docs = ["sphinx"]
 
 [[package]]
 name = "flask-pydantic"
-version = "0.12.0"
-description = "Flask extension for integration with Pydantic library"
+version = "0.13.0"
+description = "Flask extension for integration with Pydantic library."
 optional = false
 python-versions = ">=3.7"
 groups = ["main"]
 files = [
-    {file = "Flask-Pydantic-0.12.0.tar.gz", hash = "sha256:b80f18cc7efe332b47eafbae141541e9875777132ba30d7c95f9fef9bf2a6977"},
-    {file = "Flask_Pydantic-0.12.0-py3-none-any.whl", hash = "sha256:c80825d74eefa137d8d7f2396f6b376ee128329196d79eff1442bcfd816a6228"},
+    {file = "flask_pydantic-0.13.0-py3-none-any.whl", hash = "sha256:4e970965178d2bc01e11b30464ee7c38952972aea75bec9e236edc1cdae895f6"},
+    {file = "flask_pydantic-0.13.0.tar.gz", hash = "sha256:9a8fa9606b408b835e745636afe88c81a6fe7bf82904bf91aa53d0791cb361ce"},
 ]
 
 [package.dependencies]
