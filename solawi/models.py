@@ -17,8 +17,6 @@ class BaseModel:
             db.session.add(self)
             db.session.commit()
         except IntegrityError as e:
-            print("failing")
-            print(e)
             db.session.rollback()
             app.logger.debug(e)
             return None
