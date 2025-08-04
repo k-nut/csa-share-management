@@ -62,6 +62,10 @@ def import_fin_ts(is_interactive):
 
         for transaction in res:
             save_transaction(transaction)
+        print(f"Imported {len(res)} transactions")
+        if is_interactive:
+            print("Press Enter to close the window")
+            input()
 
 
 def get_new_transactions(f):
