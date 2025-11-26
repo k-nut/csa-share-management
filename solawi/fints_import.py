@@ -10,6 +10,7 @@ from fints.client import (
     FinTSUnsupportedOperation,
     NeedTANResponse,
 )
+from fints.utils import minimal_interactive_cli_bootstrap
 
 from solawi.models import Deposit, Member, Person, Share
 
@@ -34,13 +35,7 @@ def import_fin_ts(is_interactive):
         product_id=os.environ.get("CSA_HBCI_PRODUCT_ID", None),
     )
     f.fetch_tan_mechanisms()
-
-    try:
-        with f:
-            m = f.get_tan_media()
-        f.set_tan_medium(m[1][0])
-    except FinTSUnsupportedOperation:
-        print("TAN Mediums not supported.")
+    minimal_interactive_cli_bootstrap(f)
 
     with f:
         if f.init_tan_response:
