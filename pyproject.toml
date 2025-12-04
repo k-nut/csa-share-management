@@ -25,7 +25,7 @@ Flask-JWT-Extended = "*"
 Flask-Migrate = "*"
 Flask-SQLAlchemy = "*"
 psycopg2 = "*"
-fints = "4.2.4"
+fints = "5.0.0b1"
 gevent = "*"
 gunicorn = "*"
 sentry-sdk = {extras = ["flask", "sqlalchemy"], version = "*"}
