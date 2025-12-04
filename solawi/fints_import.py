@@ -7,7 +7,6 @@ from dateutil.relativedelta import relativedelta
 from fints.client import (
     FinTS3PinTanClient,
     FinTSClientMode,
-    FinTSUnsupportedOperation,
     NeedTANResponse,
 )
 from fints.utils import minimal_interactive_cli_bootstrap
