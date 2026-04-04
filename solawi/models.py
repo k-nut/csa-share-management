@@ -362,7 +362,7 @@ class User(db.Model, BaseModel):
 
     @staticmethod
     def get_all_emails() -> list[str]:
-        return [email for email, in db.session.query(User.email).filter(User.active).all()]
+        return [email for (email,) in db.session.query(User.email).filter(User.active).all()]
 
     @staticmethod
     def get_by_email(email):
