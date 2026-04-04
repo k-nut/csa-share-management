@@ -7,7 +7,7 @@ on:
 env:
   PYTHON_VERSION: 3.10.4
 jobs:
-  black:
+  ruff:
     runs-on: ubuntu-latest
     steps:
         - uses: actions/checkout@v6
@@ -30,54 +30,8 @@ jobs:
           run: |
             poetry install
 
-        - run: poetry run black --check .
+        - name: Run ruff check
+          run: poetry run ruff check .
 
-  isort:
-    runs-on: ubuntu-latest
-    steps:
-        - uses: actions/checkout@v6
-
-        - name: Set up Python ${{ env.PYTHON_VERSION }}
-          uses: actions/setup-python@v6
-          with:
-            python-version: ${{ env.PYTHON_VERSION }}
-
-        - name: Setup poetry
-          uses: Gr1N/setup-poetry@v9
-
-        - name: Setup cache
-          uses: actions/cache@v5
-          with:
-            path: ~/.cache/pypoetry/virtualenvs
-            key: venv-${{ runner.os }}-${{ env.PYTHON_VERSION }}-${{ hashFiles('**/poetry.lock') }}
-
-        - name: Install dependencies with Poetry
-          run: |
-            poetry install
-
-        - run: poetry run isort --check .
-
-  flake8:
-    runs-on: ubuntu-latest
-    steps:
-        - uses: actions/checkout@v6
-
-        - name: Set up Python ${{ env.PYTHON_VERSION }}
-          uses: actions/setup-python@v6
-          with:
-            python-version: ${{ env.PYTHON_VERSION }}
-
-        - name: Setup poetry
-          uses: Gr1N/setup-poetry@v9
-
-        - name: Setup cache
-          uses: actions/cache@v5
-          with:
-            path: ~/.cache/pypoetry/virtualenvs
-            key: venv-${{ runner.os }}-${{ env.PYTHON_VERSION }}-${{ hashFiles('**/poetry.lock') }}
-
-        - name: Install dependencies with Poetry
-          run: |
-            poetry install
-
-        - run: poetry run flake8 .
+        - name: Run ruff format check
+          run: poetry run ruff format --check .
