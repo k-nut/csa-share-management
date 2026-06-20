@@ -61,22 +61,21 @@ typecheck = ["mypy"]
 
 [[package]]
 name = "bleach"
-version = "5.0.0"
+version = "6.4.0"
 description = "An easy safelist-based HTML-sanitizing tool."
 optional = false
-python-versions = ">=3.7"
+python-versions = ">=3.10"
 groups = ["main"]
 files = [
-    {file = "bleach-5.0.0-py3-none-any.whl", hash = "sha256:08a1fe86d253b5c88c92cc3d810fd8048a16d15762e1e5b74d502256e5926aa1"},
-    {file = "bleach-5.0.0.tar.gz", hash = "sha256:c6d6cc054bdc9c83b48b8083e236e5f00f238428666d2ce2e083eaa5fd568565"},
+    {file = "bleach-6.4.0-py3-none-any.whl", hash = "sha256:4b6b6a54fff2e69a3dde9d21cc6301220bee3c3cb792187d11403fd795031081"},
+    {file = "bleach-6.4.0.tar.gz", hash = "sha256:4202482733d85cedd04e59fcb2f89f4e4c7c385a78d3c3c23c30446843a37452"},
 ]
 
 [package.dependencies]
-six = ">=1.9.0"
 webencodings = "*"
 
 [package.extras]
-dev = ["black (==22.3.0) ; implementation_name == \"cpython\"", "flake8 (==4.0.1)", "hashin (==0.17.0)", "mypy (==0.942) ; implementation_name == \"cpython\"", "pip-tools (==6.5.1)", "pytest (==7.1.1)", "sphinx (==4.3.2)", "tox (==3.24.5)", "twine (==4.0.0)", "wheel (==0.37.1)"]
+css = ["tinycss2 (>=1.1.0)"]
 
 [[package]]
 name = "blinker"
