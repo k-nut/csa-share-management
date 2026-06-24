@@ -429,14 +429,14 @@ python-dateutil = ">=2.4"
 
 [[package]]
 name = "fints"
-version = "5.0.0b1"
+version = "5.0.0"
 description = "Pure-python FinTS 3.0 (formerly known as HBCI) implementation"
 optional = false
 python-versions = ">=3.9"
 groups = ["main"]
 files = [
-    {file = "fints-5.0.0b1-py3-none-any.whl", hash = "sha256:10d434dc851bdc1967120ee776b5c58ac57e1967d08ac2fd1f4b024c2e3c5ff8"},
-    {file = "fints-5.0.0b1.tar.gz", hash = "sha256:10115c4e3e3c4087420f1787e6b4e4c31b2b5e3a3dccd71294d71a1296d2fedc"},
+    {file = "fints-5.0.0-py3-none-any.whl", hash = "sha256:6549507b7a81cfcbdbccadb1c8bfc17f6e882d4d1e9c2652dd050a54e25c2bf1"},
+    {file = "fints-5.0.0.tar.gz", hash = "sha256:d418a8d810522ab6335d03819710298902f258a146eea7acd3ad376620ae2416"},
 ]
 
 [package.dependencies]
@@ -1834,4 +1834,4 @@ testing = ["coverage (>=5.0.3)", "zope.event", "zope.testing"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.10"
-content-hash = "fdfda3c404eb76d7ba553ae9744db2b51b25fb75682310dd4bdadf802e573838"
+content-hash = "34ce7858b7b189437711c415de8ec778cbdaf8bc4f764f50368e072e62e9540c"
