@@ -4,34 +4,17 @@ on:
     branches:
       - master
   pull_request:
-env:
-  PYTHON_VERSION: 3.10.4
 jobs:
   ruff:
     runs-on: ubuntu-latest
     steps:
         - uses: actions/checkout@v7
 
-        - name: Set up Python ${{ env.PYTHON_VERSION }}
-          uses: actions/setup-python@v7
-          with:
-            python-version: ${{ env.PYTHON_VERSION }}
-
-        - name: Setup poetry
-          uses: Gr1N/setup-poetry@v9
-
-        - name: Setup cache
-          uses: actions/cache@v6
-          with:
-            path: ~/.cache/pypoetry/virtualenvs
-            key: venv-${{ runner.os }}-${{ env.PYTHON_VERSION }}-${{ hashFiles('**/poetry.lock') }}
-
-        - name: Install dependencies with Poetry
-          run: |
-            poetry install
+        - name: Setup uv
+          uses: astral-sh/setup-uv@v7
 
         - name: Run ruff check
-          run: poetry run ruff check .
+          run: uv run ruff check .
 
         - name: Run ruff format check
-          run: poetry run ruff format --check .
+          run: uv run ruff format --check .

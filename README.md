@@ -5,14 +5,7 @@ Internal tool at our CSA (Community supported agriculture) group that helps mana
 The frontend is [csa-frontend](https://github.com/k-nut/csa-frontend).
 
 ## Setup
-Make sure that you have a virtual environment set up for the project.
-
-Install [Poetry](https://python-poetry.org/docs/master/#installing-with-the-official-installer)
-
-Install all requirements 
-```
-poetry install
-```
+Install [uv](https://docs.astral.sh/uv/)
 
 This app requires a set of environment variables to be defined:
 
@@ -31,26 +24,26 @@ This app requires a set of environment variables to be defined:
 ## Creating db/running migrations
 Migrations are managed with [Flask-Migrate](https://flask-migrate.readthedocs.io/en/latest/). 
 ```bash
-poetry run flask db upgrade
+uv run flask db upgrade
 ```
 
 ## Running
 On the first run, you need to initialize your database. Make sure your environment variables are exported and then run:
 ```bash
-poetry run flask db upgrade
+uv run flask db upgrade
 ```
 This  only needs to be done initially and whenever the DB schema changes. 
 
 In order to start the application you have to run:
 ```bash
-poetry run flask run
+uv run flask run
 ```
 
 ## Importing data
 Data is imported via the bank's FinTS API. Make sure that you set the correct enviornment
 variables for your bank and then run.
 ```bash
-poetry run flask import-statements
+uv run flask import-statements
 ```
 When you deploy the application, you should put this into a cronjob and run it 
 daily (or weekly if that is sufficient for your use case).
@@ -90,18 +83,18 @@ bank export showing `Jane & John Doe` as a name) so we cannot re-use the member 
 ## Creating users
 Users can only be created from the command line. To do so, run:
 ```bash
-poetry run flask createuser <email> <password>
+uv run flask createuser <email> <password>
 ```
 
 
 ## Testing
 The application comes with a set of tests which can be run with:
 ```bash
-poetry run pytest
+uv run pytest
 ```
 In order to also collect coverage reports, run:
 ```bash
-poetry run pytest --cov=./
+uv run pytest --cov=./
 ```
 
 [1]: https://www.hbci-zka.de/register/prod_register.htm
