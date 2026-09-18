@@ -2,7 +2,7 @@ name: Pytest's test suite
 on:
   push:
     branches:
-      - master
+      - main
   pull_request:
 jobs:
   pytest:
