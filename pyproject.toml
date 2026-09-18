@@ -26,6 +26,7 @@ dependencies = [
     "sentry-sdk[flask, sqlalchemy]",
     "python-dateutil",
     "Flask-Pydantic",
+    "packaging>=23.0", # transitive dependency of gunicorn
 ]
 
 [tool.ruff]
