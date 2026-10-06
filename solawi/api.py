@@ -70,7 +70,14 @@ def share_email_list(share_id: int):
 @api.route("/members", methods=["GET"])
 @login_required()
 def member_list():
-    members = db.session.query(Member).options(joinedload(Member.share)).all()
+    members = (
+        db.session.query(Member)
+        .options(
+            joinedload(Member.share).selectinload(Share.bets),
+            joinedload(Member.share).joinedload(Share.station),
+        )
+        .all()
+    )
     result = []
 
     if request.args.get("active"):
